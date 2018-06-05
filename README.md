@@ -6,3 +6,7 @@
 - Node https://nodejs.org/en/
 - NPM/Yarn
 
+# Build Tools
+- HTML - Pug/Jade
+- Javascript - Typescript
+- CSS - LESS
