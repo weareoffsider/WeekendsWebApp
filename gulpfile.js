@@ -3,6 +3,8 @@ var less = require('gulp-less')
 var pug = require('gulp-pug')
 var connect = require('gulp-connect')
 var del = require('del')
+var webpackStream = require('webpack-stream')
+var webpack = require('webpack')
 
 
 var CONFIG = {
@@ -18,7 +20,21 @@ gulp.task("clean:web", function () {
 })
 
 gulp.task("scripts", function () {
-  return gulp.src(CONFIG.paths.clientSrc + "/**/*.js")
+  return gulp.src(CONFIG.paths.clientSrc + "/app.ts")
+             .pipe(webpackStream({
+               mode: "development",
+               resolve: {
+                 extensions: [".ts", ".tsx", ".js"]
+               },
+               module: {
+                 rules: [
+                   { test: /\.tsx?$/, loader: "ts-loader" }
+                 ]
+               },
+               output: {
+                 filename: "app.js",
+               },
+             }, webpack))
              .pipe(gulp.dest(CONFIG.paths.buildWeb))
              .pipe(connect.reload())
 })
