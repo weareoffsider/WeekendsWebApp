@@ -4,6 +4,7 @@
   "description": "- Text Editor - Terminal - Web Browser - Node Version Manager https://github.com/creationix/nvm - Node https://nodejs.org/en/ - NPM/Yarn",
   "main": "index.js",
   "scripts": {
+    "build": "lessc client/app.less > client/app.css",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -17,7 +18,12 @@
   },
   "homepage": "https://github.com/weareoffsider/WeekendsWebApp#readme",
   "devDependencies": {
-    "less": "3.0.4",
+    "del": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-connect": "^5.5.0",
+    "gulp-less": "^3.5.0",
+    "gulp-pug": "^4.0.1",
+    "less": "2.7.3",
     "pug": "2.0.3",
     "pug-cli": "^1.0.0-alpha6"
   }
