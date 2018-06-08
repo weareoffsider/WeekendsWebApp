@@ -1,4 +1,5 @@
-console.log("Hello World")
+console.log("Hello World One")
+import dependencyFunc from './dependency'
 
 interface Thing {
   foo: string
@@ -11,6 +12,7 @@ function tickOne() {
   const timeElement = document.querySelector('time')
   counter++
   timeElement.textContent = counter.toString()
+  dependencyFunc("number " + counter)
 
   window.setTimeout(tickOne, 1000)
 }
