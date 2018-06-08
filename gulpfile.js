@@ -89,6 +89,7 @@ gulp.task("devServer", function () {
   connect.server({
     root: CONFIG.paths.buildWeb,
     livereload: true,
+    fallback: path.resolve(__dirname, "./" + CONFIG.paths.buildWeb + "/index.html"),
   })
 })
 
