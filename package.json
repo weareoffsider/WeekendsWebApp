@@ -6,7 +6,21 @@
   "scripts": {
     "build": "gulp build",
     "dev": "gulp",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
   },
   "repository": {
     "type": "git",
@@ -19,13 +33,16 @@
   },
   "homepage": "https://github.com/weareoffsider/WeekendsWebApp#readme",
   "devDependencies": {
+    "@types/jest": "^23.1.0",
     "del": "3.0.0",
     "gulp": "3.9.1",
     "gulp-connect": "5.5.0",
     "gulp-less": "3.5.0",
     "gulp-pug": "4.0.1",
+    "jest": "^23.1.0",
     "less": "2.7.3",
     "pug": "2.0.3",
+    "ts-jest": "^22.4.6",
     "ts-loader": "4.3.1",
     "typescript": "2.9.1",
     "webpack": "4.11.1"

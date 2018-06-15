@@ -83,7 +83,7 @@ export function initializeRouter(
   })
 }
 
-function matchPathToRoute (path: string, matcher: string): ViewParams {
+export function matchPathToRoute (path: string, matcher: string): ViewParams {
   const pathSegments = path.split("/")
   const matcherSegments = matcher.split("/")
   const viewParams = {}
@@ -111,7 +111,7 @@ function matchPathToRoute (path: string, matcher: string): ViewParams {
 }
 
 
-function updateView (routeStack: RouteStack) {
+export function updateView (routeStack: RouteStack) {
   const {viewElement, routes} = routeStack
   let currentLocation = window.location.pathname
   if (currentLocation[currentLocation.length - 1] != "/") {
