@@ -39,6 +39,9 @@ addRoute(
   routeStack,
   "home",
   "/",
+  function (params: any) {
+    return Promise.resolve(true)
+  },
   function (viewElement: HTMLElement) {
     viewElement.innerHTML = `
       <h2>This is the home page</h2>
@@ -57,6 +60,11 @@ addRoute(
 addRoute(routeStack,
   "about",
   "/about/",
+  function (params: any) {
+    return new Promise((resolve, reject) => {
+      window.setTimeout(resolve, 1000)
+    })
+  },
   function (viewElement: HTMLElement) {
     viewElement.innerHTML = `
       <h2>This is the about page</h2>
@@ -70,6 +78,11 @@ addRoute(routeStack,
 addRoute(routeStack,
   "entry",
   "/entry/:slug/",
+  function (params: any) {
+    return new Promise((resolve, reject) => {
+      window.setTimeout(resolve, 3000)
+    })
+  },
   function (viewElement: HTMLElement, params: any) {
     const {slug} = params
     viewElement.innerHTML = `

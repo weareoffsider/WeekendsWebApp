@@ -2,17 +2,52 @@ import {find} from '../Utils'
 
 type ViewParams = {[key: string]: string}
 type ViewRenderFunction = (viewElement: HTMLElement, params?: ViewParams) => void
+type PreloadFunction = (params?: ViewParams) => Promise<any>
 type ViewRenderFunctionNoParams = (viewElement: HTMLElement) => void
 
 interface RoutePath {
   name: string
   matcher: string
+  preload: PreloadFunction
   render: ViewRenderFunction
 }
 
 export interface RouteStack {
   viewElement?: HTMLElement
   routes: RoutePath[]
+}
+
+
+export interface RouterState {
+  loadedLocation?: string
+  lastContainer?: HTMLElement
+}
+
+
+export function initializeRouter(
+  routeStack: RouteStack
+) {
+  const routerState = {
+    loadedLocation: "",
+  }
+
+  updateView(routeStack, routerState)
+
+  window.addEventListener('popstate', function (event) {
+    updateView(routeStack, routerState)
+  })
+
+  document.body.addEventListener('click', function (event) {
+    if (event.target && (event.target as HTMLElement).tagName == "A") {
+      const anchor = (event.target as HTMLAnchorElement)
+      const root = window.location.origin
+      if (anchor.href && anchor.href.indexOf(root) == 0) {
+        event.preventDefault()
+        window.history.pushState({}, "", anchor.href)
+        updateView(routeStack, routerState)
+      }
+    }
+  })
 }
 
 
@@ -55,32 +90,11 @@ export function addRoute(
   routeStack: RouteStack,
   name: string,
   matcher: string,
+  preload: PreloadFunction,
   render: ViewRenderFunction | ViewRenderFunctionNoParams
 ): RouteStack {
-  routeStack.routes.push({name, matcher, render})
+  routeStack.routes.push({name, matcher, render, preload})
   return routeStack
-}
-
-export function initializeRouter(
-  routeStack: RouteStack
-) {
-  updateView(routeStack)
-
-  window.addEventListener('popstate', function (event) {
-    updateView(routeStack)
-  })
-
-  document.body.addEventListener('click', function (event) {
-    if (event.target && (event.target as HTMLElement).tagName == "A") {
-      const anchor = (event.target as HTMLAnchorElement)
-      const root = window.location.origin
-      if (anchor.href && anchor.href.indexOf(root) == 0) {
-        event.preventDefault()
-        window.history.pushState({}, "", anchor.href)
-        updateView(routeStack)
-      }
-    }
-  })
 }
 
 export function matchPathToRoute (path: string, matcher: string): ViewParams {
@@ -111,19 +125,42 @@ export function matchPathToRoute (path: string, matcher: string): ViewParams {
 }
 
 
-export function updateView (routeStack: RouteStack) {
+export function updateView (routeStack: RouteStack, routerState: RouterState) {
   const {viewElement, routes} = routeStack
+
   let currentLocation = window.location.pathname
+
   if (currentLocation[currentLocation.length - 1] != "/") {
     window.history.pushState({}, "", currentLocation + "/")
     currentLocation = window.location.pathname
   }
 
+  if (currentLocation == routerState.loadedLocation) {
+    return
+  }
+
+  if (routerState.lastContainer) {
+    routerState.lastContainer.style.opacity = "0.5"
+  }
+
+  routerState.loadedLocation = currentLocation
+
+  const newViewContainer = document.createElement('div')
+  newViewContainer.setAttribute('data-route-path', currentLocation)
+  viewElement.appendChild(newViewContainer)
+
   routes.some((route) => {
     const viewParams = matchPathToRoute(currentLocation, route.matcher)
 
     if (viewParams) {
-      route.render(viewElement, viewParams)
+      route.preload(viewParams).then((result) => {
+        if (routerState.lastContainer) {
+          const leavingElement = routerState.lastContainer
+          leavingElement.parentNode.removeChild(leavingElement)
+        }
+        route.render(newViewContainer, viewParams)
+        routerState.lastContainer = newViewContainer
+      })
       return true
     }
 
