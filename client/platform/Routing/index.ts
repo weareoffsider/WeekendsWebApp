@@ -152,6 +152,7 @@ export function updateView (routeStack: RouteStack, routerState: RouterState) {
     window.history.pushState({}, "", currentLocation + "/")
     currentLocation = window.location.pathname
   }
+  console.log("Initiating load of route:", currentLocation)
 
   if (currentLocation == routerState.loadedLocation) {
     return
@@ -171,7 +172,17 @@ export function updateView (routeStack: RouteStack, routerState: RouterState) {
     const viewParams = matchPathToRoute(currentLocation, route.matcher)
 
     if (viewParams) {
+
+      // async loading period starts now
       route.preload(viewParams).then((result) => {
+        if (currentLocation != window.location.pathname) {
+          console.log("discarding loading of path: " + currentLocation)
+          newViewContainer.parentNode.removeChild(newViewContainer)
+          return
+        }
+
+
+        console.log("Rendering of route:", currentLocation)
         if (routerState.lastContainer) {
           const leavingElement = routerState.lastContainer
           leavingElement.parentNode.removeChild(leavingElement)
@@ -186,12 +197,19 @@ export function updateView (routeStack: RouteStack, routerState: RouterState) {
 
         routerState.lastContainer = newViewContainer
       }, (err) => {
+        console.error(err)
+        if (currentLocation != window.location.pathname) {
+          console.log("discarding loading of path: " + currentLocation)
+          newViewContainer.parentNode.removeChild(newViewContainer)
+          return
+        }
+
+        console.log("Rendering of route:", currentLocation)
         if (routerState.lastContainer) {
           const leavingElement = routerState.lastContainer
           leavingElement.parentNode.removeChild(leavingElement)
         }
 
-        console.error(err)
         if (err.name == "DataForbiddenError") {
           routeStack.renderError(newViewContainer, {code: "403", err: err.toString()})
         } else if (err.name == "DataNotFoundError")  {
@@ -202,6 +220,8 @@ export function updateView (routeStack: RouteStack, routerState: RouterState) {
 
         routerState.lastContainer = newViewContainer
       })
+      // async loading code ends
+
       return true
     }
 
