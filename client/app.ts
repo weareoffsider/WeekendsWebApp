@@ -28,11 +28,35 @@
 //   file uploads
 
 
-import {RouteStack, addRoute, getUrl, initializeRouter} from './platform/Routing'
+import {
+  RouteStack, addRoute, getUrl, initializeRouter,
+  DataNotFoundError, DataForbiddenError,
+} from './platform/Routing'
 
 
 const routeStack: RouteStack = {
   routes: [],
+  renderError: function(viewElement: HTMLElement, params?: any) {
+    if (params.code == "404") {
+      viewElement.innerHTML = `
+        <h2>404 Error</h2>
+        <pre>${ JSON.stringify(params) }</pre>
+        <a href="${getUrl(routeStack, 'home')}">Go Back Home</a>
+      `
+    } else if (params.code == "403") {
+      viewElement.innerHTML = `
+        <h2>403 Forbidden Error</h2>
+        <pre>${ JSON.stringify(params) }</pre>
+        <a href="${getUrl(routeStack, 'home')}">Go Back Home</a>
+      `
+    } else {
+      viewElement.innerHTML = `
+        <h2>Unspecified Error</h2>
+        <pre>${ JSON.stringify(params) }</pre>
+        <a href="${getUrl(routeStack, 'home')}">Go Back Home</a>
+      `
+    }
+  },
 }
 
 addRoute(
@@ -66,6 +90,7 @@ addRoute(routeStack,
     })
   },
   function (viewElement: HTMLElement) {
+    eoantheoanth
     viewElement.innerHTML = `
       <h2>This is the about page</h2>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam hendrerit suscipit dui vitae aliquet. Nullam suscipit varius erat eu sagittis. Ut efficitur bibendum nibh, in faucibus urna interdum ut. Duis faucibus tellus id suscipit vulputate. Nunc nunc magna, egestas id gravida eget, scelerisque quis odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur vitae massa eu dui bibendum aliquam. </p>
@@ -79,8 +104,26 @@ addRoute(routeStack,
   "entry",
   "/entry/:slug/",
   function (params: any) {
+    const validEntries = [
+      'entry-one',
+      'entry-two',
+    ]
+    const forbiddenEntries = [
+      'entry-three',
+      'entry-four',
+    ]
+
     return new Promise((resolve, reject) => {
-      window.setTimeout(resolve, 3000)
+      // reject(new Error("this is the entry route error"))
+      window.setTimeout(function() {
+        if (validEntries.indexOf(params.slug) != -1) {
+          resolve(true)
+        } else if (forbiddenEntries.indexOf(params.slug) != -1) {
+          reject(new DataForbiddenError("This entry could not be accessed."))
+        } else {
+          reject(new DataNotFoundError("This entry could not be found."))
+        }
+      }, 2000)
     })
   },
   function (viewElement: HTMLElement, params: any) {

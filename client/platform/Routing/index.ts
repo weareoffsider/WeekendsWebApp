@@ -15,6 +15,7 @@ interface RoutePath {
 export interface RouteStack {
   viewElement?: HTMLElement
   routes: RoutePath[]
+  renderError: ViewRenderFunction
 }
 
 
@@ -125,6 +126,23 @@ export function matchPathToRoute (path: string, matcher: string): ViewParams {
 }
 
 
+export class DataNotFoundError extends Error {
+  public name = "DataNotFoundError"
+
+  constructor(readonly message: string) {
+    super(message)
+  }
+}
+
+export class DataForbiddenError extends Error {
+  public name = "DataForbiddenError"
+
+  constructor(readonly message: string) {
+    super(message)
+  }
+}
+
+
 export function updateView (routeStack: RouteStack, routerState: RouterState) {
   const {viewElement, routes} = routeStack
 
@@ -149,7 +167,7 @@ export function updateView (routeStack: RouteStack, routerState: RouterState) {
   newViewContainer.setAttribute('data-route-path', currentLocation)
   viewElement.appendChild(newViewContainer)
 
-  routes.some((route) => {
+  const routeFound = routes.some((route) => {
     const viewParams = matchPathToRoute(currentLocation, route.matcher)
 
     if (viewParams) {
@@ -158,7 +176,30 @@ export function updateView (routeStack: RouteStack, routerState: RouterState) {
           const leavingElement = routerState.lastContainer
           leavingElement.parentNode.removeChild(leavingElement)
         }
-        route.render(newViewContainer, viewParams)
+
+        try {
+          route.render(newViewContainer, viewParams)
+        } catch (e) {
+          console.error(e)
+          routeStack.renderError(newViewContainer, {code: "500", err: e.toString()})
+        }
+
+        routerState.lastContainer = newViewContainer
+      }, (err) => {
+        if (routerState.lastContainer) {
+          const leavingElement = routerState.lastContainer
+          leavingElement.parentNode.removeChild(leavingElement)
+        }
+
+        console.error(err)
+        if (err.name == "DataForbiddenError") {
+          routeStack.renderError(newViewContainer, {code: "403", err: err.toString()})
+        } else if (err.name == "DataNotFoundError")  {
+          routeStack.renderError(newViewContainer, {code: "404", err: err.toString()})
+        } else {
+          routeStack.renderError(newViewContainer, {code: "500", err: err.toString()})
+        }
+
         routerState.lastContainer = newViewContainer
       })
       return true
@@ -166,4 +207,9 @@ export function updateView (routeStack: RouteStack, routerState: RouterState) {
 
     return false
   })
+
+  if (!routeFound) {
+    console.error("Route not found for path " + currentLocation)
+    routeStack.renderError(newViewContainer, {code: "404"})
+  }
 }
