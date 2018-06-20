@@ -33,6 +33,8 @@ import {
   DataNotFoundError, DataForbiddenError,
 } from './platform/Routing'
 
+import createStateStore, {INCREMENT_ACTION, DECREMENT_ACTION} from './platform/State'
+
 
 const routeStack: RouteStack = {
   routes: [],
@@ -66,9 +68,10 @@ addRoute(
   function (params: any) {
     return Promise.resolve(true)
   },
-  function (viewElement: HTMLElement) {
+  function (viewElement: HTMLElement, params: any, appState: any) {
     viewElement.innerHTML = `
       <h2>This is the home page</h2>
+      <p>The count is ${appState.count}</p>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam hendrerit suscipit dui vitae aliquet. Nullam suscipit varius erat eu sagittis. Ut efficitur bibendum nibh, in faucibus urna interdum ut. Duis faucibus tellus id suscipit vulputate. Nunc nunc magna, egestas id gravida eget, scelerisque quis odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur vitae massa eu dui bibendum aliquam. </p>
       <ul>
         <li><a href="${getUrl(routeStack, 'entry', {slug: "entry-one"})}">Entry One</a></li>
@@ -89,10 +92,10 @@ addRoute(routeStack,
       window.setTimeout(resolve, 1000)
     })
   },
-  function (viewElement: HTMLElement) {
-    eoantheoanth
+  function (viewElement: HTMLElement, params: any, appState: any) {
     viewElement.innerHTML = `
       <h2>This is the about page</h2>
+      <p>The count is ${appState.count}</p>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam hendrerit suscipit dui vitae aliquet. Nullam suscipit varius erat eu sagittis. Ut efficitur bibendum nibh, in faucibus urna interdum ut. Duis faucibus tellus id suscipit vulputate. Nunc nunc magna, egestas id gravida eget, scelerisque quis odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur vitae massa eu dui bibendum aliquam. </p>
       <a href="${getUrl(routeStack, 'home')}">Home</a>
     `
@@ -126,10 +129,11 @@ addRoute(routeStack,
       }, 2000)
     })
   },
-  function (viewElement: HTMLElement, params: any) {
+  function (viewElement: HTMLElement, params: any, appState: any) {
     const {slug} = params
     viewElement.innerHTML = `
       <h2>This is an entry page - ${slug}</h2>
+      <p>The count is ${appState.count}</p>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam hendrerit suscipit dui vitae aliquet. Nullam suscipit varius erat eu sagittis. Ut efficitur bibendum nibh, in faucibus urna interdum ut. Duis faucibus tellus id suscipit vulputate. Nunc nunc magna, egestas id gravida eget, scelerisque quis odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur vitae massa eu dui bibendum aliquam. </p>
       <a href="${getUrl(routeStack, 'home')}">Home</a>
     `
@@ -140,7 +144,26 @@ addRoute(routeStack,
 document.addEventListener('DOMContentLoaded', function (event) {
   const viewElement = document.getElementById('view')
   routeStack.viewElement = viewElement
-  initializeRouter(routeStack)
+  const store = createStateStore({count: 0})
+
+  const countElement = document.querySelector('.count')
+  const incrementButton = document.querySelector('.increment')
+  const decrementButton = document.querySelector('.decrement')
+
+  incrementButton.addEventListener('click', function(e) {
+    store.dispatch(INCREMENT_ACTION)
+  })
+
+  decrementButton.addEventListener('click', function(e) {
+    store.dispatch(DECREMENT_ACTION)
+  })
+
+  store.subscribe(() => {
+    const state = store.getState()
+    countElement.textContent = state.count
+  })
+
+  initializeRouter(routeStack, store)
 })
 
 

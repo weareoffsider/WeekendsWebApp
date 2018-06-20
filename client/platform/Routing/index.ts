@@ -1,9 +1,8 @@
 import {find} from '../Utils'
 
 type ViewParams = {[key: string]: string}
-type ViewRenderFunction = (viewElement: HTMLElement, params?: ViewParams) => void
+type ViewRenderFunction = (viewElement: HTMLElement, params?: ViewParams, appState?: any) => void
 type PreloadFunction = (params?: ViewParams) => Promise<any>
-type ViewRenderFunctionNoParams = (viewElement: HTMLElement) => void
 
 interface RoutePath {
   name: string
@@ -25,17 +24,20 @@ export interface RouterState {
 }
 
 
+
+
 export function initializeRouter(
-  routeStack: RouteStack
+  routeStack: RouteStack,
+  store: any
 ) {
   const routerState = {
     loadedLocation: "",
   }
 
-  updateView(routeStack, routerState)
+  updateView(routeStack, routerState, store.getState())
 
   window.addEventListener('popstate', function (event) {
-    updateView(routeStack, routerState)
+    updateView(routeStack, routerState, store.getState())
   })
 
   document.body.addEventListener('click', function (event) {
@@ -45,7 +47,7 @@ export function initializeRouter(
       if (anchor.href && anchor.href.indexOf(root) == 0) {
         event.preventDefault()
         window.history.pushState({}, "", anchor.href)
-        updateView(routeStack, routerState)
+        updateView(routeStack, routerState, store.getState())
       }
     }
   })
@@ -92,7 +94,7 @@ export function addRoute(
   name: string,
   matcher: string,
   preload: PreloadFunction,
-  render: ViewRenderFunction | ViewRenderFunctionNoParams
+  render: ViewRenderFunction
 ): RouteStack {
   routeStack.routes.push({name, matcher, render, preload})
   return routeStack
@@ -143,7 +145,17 @@ export class DataForbiddenError extends Error {
 }
 
 
-export function updateView (routeStack: RouteStack, routerState: RouterState) {
+// state in ->
+  // checks if the loadedLocation Changed
+    //   if loadedLocation changes, start loading the new route
+  // for all visible routes
+    //  send state to visible route render functions
+
+
+export function updateView (
+  routeStack: RouteStack, routerState: RouterState,
+  appState: any
+) {
   const {viewElement, routes} = routeStack
 
   let currentLocation = window.location.pathname
@@ -189,7 +201,7 @@ export function updateView (routeStack: RouteStack, routerState: RouterState) {
         }
 
         try {
-          route.render(newViewContainer, viewParams)
+          route.render(newViewContainer, viewParams, appState)
         } catch (e) {
           console.error(e)
           routeStack.renderError(newViewContainer, {code: "500", err: e.toString()})
