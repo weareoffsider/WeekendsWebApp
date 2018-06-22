@@ -33,7 +33,9 @@ import {
   DataNotFoundError, DataForbiddenError,
 } from './platform/Routing'
 
-import createStateStore, {INCREMENT_ACTION, DECREMENT_ACTION} from './platform/State'
+import RouterStateBundle from './platform/Routing/state'
+
+import createStateStore, {CounterStateBundle} from './platform/State'
 
 
 const routeStack: RouteStack = {
@@ -71,7 +73,7 @@ addRoute(
   function (viewElement: HTMLElement, params: any, appState: any) {
     viewElement.innerHTML = `
       <h2>This is the home page</h2>
-      <p>The count is ${appState.count}</p>
+      <p>The count is ${appState.counter.count}</p>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam hendrerit suscipit dui vitae aliquet. Nullam suscipit varius erat eu sagittis. Ut efficitur bibendum nibh, in faucibus urna interdum ut. Duis faucibus tellus id suscipit vulputate. Nunc nunc magna, egestas id gravida eget, scelerisque quis odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur vitae massa eu dui bibendum aliquam. </p>
       <ul>
         <li><a href="${getUrl(routeStack, 'entry', {slug: "entry-one"})}">Entry One</a></li>
@@ -95,7 +97,7 @@ addRoute(routeStack,
   function (viewElement: HTMLElement, params: any, appState: any) {
     viewElement.innerHTML = `
       <h2>This is the about page</h2>
-      <p>The count is ${appState.count}</p>
+      <p>The count is ${appState.counter.count}</p>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam hendrerit suscipit dui vitae aliquet. Nullam suscipit varius erat eu sagittis. Ut efficitur bibendum nibh, in faucibus urna interdum ut. Duis faucibus tellus id suscipit vulputate. Nunc nunc magna, egestas id gravida eget, scelerisque quis odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur vitae massa eu dui bibendum aliquam. </p>
       <a href="${getUrl(routeStack, 'home')}">Home</a>
     `
@@ -133,7 +135,7 @@ addRoute(routeStack,
     const {slug} = params
     viewElement.innerHTML = `
       <h2>This is an entry page - ${slug}</h2>
-      <p>The count is ${appState.count}</p>
+      <p>The count is ${appState.counter.count}</p>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam hendrerit suscipit dui vitae aliquet. Nullam suscipit varius erat eu sagittis. Ut efficitur bibendum nibh, in faucibus urna interdum ut. Duis faucibus tellus id suscipit vulputate. Nunc nunc magna, egestas id gravida eget, scelerisque quis odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur vitae massa eu dui bibendum aliquam. </p>
       <a href="${getUrl(routeStack, 'home')}">Home</a>
     `
@@ -144,26 +146,24 @@ addRoute(routeStack,
 document.addEventListener('DOMContentLoaded', function (event) {
   const viewElement = document.getElementById('view')
   routeStack.viewElement = viewElement
-  const store = createStateStore({count: 0})
+  const {store, actionsBundle} = createStateStore([
+    CounterStateBundle,
+    RouterStateBundle,
+  ])
 
   const countElement = document.querySelector('.count')
   const incrementButton = document.querySelector('.increment')
   const decrementButton = document.querySelector('.decrement')
 
-  incrementButton.addEventListener('click', function(e) {
-    store.dispatch(INCREMENT_ACTION)
-  })
-
-  decrementButton.addEventListener('click', function(e) {
-    store.dispatch(DECREMENT_ACTION)
-  })
+  incrementButton.addEventListener('click', actionsBundle.counter.incrementCount)
+  decrementButton.addEventListener('click', actionsBundle.counter.decrementCount)
 
   store.subscribe(() => {
     const state = store.getState()
-    countElement.textContent = state.count
+    countElement.textContent = state.counter.count
   })
 
-  initializeRouter(routeStack, store)
+  initializeRouter(routeStack, store, actionsBundle)
 })
 
 

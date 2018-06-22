@@ -18,9 +18,16 @@ export interface RouteStack {
 }
 
 
+export interface RouterContainerState {
+  routePath?: RoutePath
+  routeParams?: any
+  container: HTMLElement
+}
+
 export interface RouterState {
-  loadedLocation?: string
-  lastContainer?: HTMLElement
+  currentPath?: string,
+  lastContainer?: RouterContainerState
+  activeContainers: RouterContainerState[]
 }
 
 
@@ -28,16 +35,17 @@ export interface RouterState {
 
 export function initializeRouter(
   routeStack: RouteStack,
-  store: any
+  store: any,
+  actionsBundle: any,
 ) {
   const routerState = {
-    loadedLocation: "",
+    activeContainers: [],
   }
 
-  updateView(routeStack, routerState, store.getState())
+  actionsBundle.routing.changeCurrentPath(window.location.pathname)
 
   window.addEventListener('popstate', function (event) {
-    updateView(routeStack, routerState, store.getState())
+    actionsBundle.routing.changeCurrentPath(window.location.pathname)
   })
 
   document.body.addEventListener('click', function (event) {
@@ -47,9 +55,15 @@ export function initializeRouter(
       if (anchor.href && anchor.href.indexOf(root) == 0) {
         event.preventDefault()
         window.history.pushState({}, "", anchor.href)
-        updateView(routeStack, routerState, store.getState())
+        actionsBundle.routing.changeCurrentPath(window.location.pathname)
       }
     }
+  })
+
+  updateView(routeStack, store.getState(), routerState, actionsBundle)
+
+  store.subscribe(() => {
+    updateView(routeStack, store.getState(), routerState, actionsBundle)
   })
 }
 
@@ -153,8 +167,10 @@ export class DataForbiddenError extends Error {
 
 
 export function updateView (
-  routeStack: RouteStack, routerState: RouterState,
-  appState: any
+  routeStack: RouteStack,
+  appState: any,
+  routerState: RouterState,
+  actionsBundle: any
 ) {
   const {viewElement, routes} = routeStack
 
@@ -166,82 +182,118 @@ export function updateView (
   }
   console.log("Initiating load of route:", currentLocation)
 
-  if (currentLocation == routerState.loadedLocation) {
-    return
-  }
-
-  if (routerState.lastContainer) {
-    routerState.lastContainer.style.opacity = "0.5"
-  }
-
-  routerState.loadedLocation = currentLocation
-
-  const newViewContainer = document.createElement('div')
-  newViewContainer.setAttribute('data-route-path', currentLocation)
-  viewElement.appendChild(newViewContainer)
-
-  const routeFound = routes.some((route) => {
-    const viewParams = matchPathToRoute(currentLocation, route.matcher)
-
-    if (viewParams) {
-
-      // async loading period starts now
-      route.preload(viewParams).then((result) => {
-        if (currentLocation != window.location.pathname) {
-          console.log("discarding loading of path: " + currentLocation)
-          newViewContainer.parentNode.removeChild(newViewContainer)
-          return
-        }
-
-
-        console.log("Rendering of route:", currentLocation)
-        if (routerState.lastContainer) {
-          const leavingElement = routerState.lastContainer
-          leavingElement.parentNode.removeChild(leavingElement)
-        }
-
-        try {
-          route.render(newViewContainer, viewParams, appState)
-        } catch (e) {
-          console.error(e)
-          routeStack.renderError(newViewContainer, {code: "500", err: e.toString()})
-        }
-
-        routerState.lastContainer = newViewContainer
-      }, (err) => {
-        console.error(err)
-        if (currentLocation != window.location.pathname) {
-          console.log("discarding loading of path: " + currentLocation)
-          newViewContainer.parentNode.removeChild(newViewContainer)
-          return
-        }
-
-        console.log("Rendering of route:", currentLocation)
-        if (routerState.lastContainer) {
-          const leavingElement = routerState.lastContainer
-          leavingElement.parentNode.removeChild(leavingElement)
-        }
-
-        if (err.name == "DataForbiddenError") {
-          routeStack.renderError(newViewContainer, {code: "403", err: err.toString()})
-        } else if (err.name == "DataNotFoundError")  {
-          routeStack.renderError(newViewContainer, {code: "404", err: err.toString()})
-        } else {
-          routeStack.renderError(newViewContainer, {code: "500", err: err.toString()})
-        }
-
-        routerState.lastContainer = newViewContainer
-      })
-      // async loading code ends
-
-      return true
-    }
-
-    return false
+  routerState.activeContainers.forEach((containerState) => {
+    containerState.routePath.render(
+      containerState.container,
+      containerState.routeParams,
+      appState
+    )
   })
 
-  if (!routeFound) {
-    console.error("Route not found for path " + currentLocation)
-    routeStack.renderError(newViewContainer, {code: "404"})
+
+  if (routerState.currentPath != appState.routing.currentPath) {
+
+    routerState.currentPath = appState.routing.currentPath
+    const newViewContainer = document.createElement('div')
+    newViewContainer.setAttribute('data-route-path', currentLocation)
+    viewElement.appendChild(newViewContainer)
+
+    const containerState: RouterContainerState = {
+      routePath: null,
+      container: newViewContainer,
+    }
+
+    if (routerState.lastContainer) {
+      routerState.lastContainer.container.style.opacity = "0.5"
+    }
+
+
+    const routeFound = routes.some((route) => {
+      const viewParams = matchPathToRoute(currentLocation, route.matcher)
+
+      containerState.routePath = route
+      containerState.routeParams = viewParams
+
+      if (viewParams) {
+
+        // async loading period starts now
+        route.preload(viewParams).then((result) => {
+
+          if (currentLocation != window.location.pathname) {
+            console.log("discarding loading of path: " + currentLocation)
+            newViewContainer.parentNode.removeChild(newViewContainer)
+            routerState.activeContainers = routerState.activeContainers.filter(
+              (cont) => cont != containerState
+            )
+            console.log(routerState)
+            return
+          }
+
+
+          console.log("Rendering of route:", currentLocation)
+          if (routerState.lastContainer) {
+            const leavingElement = routerState.lastContainer
+            leavingElement.container.parentNode.removeChild(
+              leavingElement.container
+            )
+            routerState.activeContainers = routerState.activeContainers.filter(
+              (cont) => cont != leavingElement
+            )
+          }
+
+          try {
+            route.render(newViewContainer, viewParams, appState)
+            routerState.activeContainers.push(containerState)
+          } catch (e) {
+            console.error(e)
+            routeStack.renderError(newViewContainer, {code: "500", err: e.toString()})
+          }
+
+          routerState.lastContainer = containerState
+        }, (err) => {
+          console.error(err)
+          if (currentLocation != window.location.pathname) {
+            console.log("discarding loading of path: " + currentLocation)
+            newViewContainer.parentNode.removeChild(newViewContainer)
+            routerState.activeContainers = routerState.activeContainers.filter(
+              (cont) => cont != containerState
+            )
+            return
+          }
+
+          console.log("Rendering of route:", currentLocation)
+          if (routerState.lastContainer) {
+            const leavingElement = routerState.lastContainer
+            leavingElement.container.parentNode.removeChild(leavingElement.container)
+            routerState.activeContainers = routerState.activeContainers.filter(
+              (cont) => cont != leavingElement
+            )
+          }
+
+          if (err.name == "DataForbiddenError") {
+            routeStack.renderError(newViewContainer, {code: "403", err: err.toString()})
+          } else if (err.name == "DataNotFoundError")  {
+            routeStack.renderError(newViewContainer, {code: "404", err: err.toString()})
+          } else {
+            routeStack.renderError(newViewContainer, {code: "500", err: err.toString()})
+          }
+
+          routerState.lastContainer = containerState
+        })
+        // async loading code ends
+
+        return true
+      }
+
+      return false
+    })
+
+    if (!routeFound) {
+      console.error("Route not found for path " + currentLocation)
+      routeStack.renderError(newViewContainer, {code: "404"})
+      routerState.lastContainer = containerState
+    }
   }
+
+
 }
