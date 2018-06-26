@@ -33,6 +33,8 @@ import {
   DataNotFoundError, DataForbiddenError,
 } from './platform/Routing'
 
+import initializeRenderer from './platform/Renderer'
+
 import RouterStateBundle from './platform/Routing/state'
 
 import createStateStore, {CounterStateBundle} from './platform/State'
@@ -145,7 +147,6 @@ addRoute(routeStack,
 
 document.addEventListener('DOMContentLoaded', function (event) {
   const viewElement = document.getElementById('view')
-  routeStack.viewElement = viewElement
   const {store, actionsBundle} = createStateStore([
     CounterStateBundle,
     RouterStateBundle,
@@ -163,6 +164,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
     countElement.textContent = state.counter.count
   })
 
+  initializeRenderer(routeStack, viewElement, store, actionsBundle)
   initializeRouter(routeStack, store, actionsBundle)
 })
 

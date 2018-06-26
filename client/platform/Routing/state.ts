@@ -25,7 +25,7 @@ export const CHANGE_LOADED_ROUTE = "Router/CHANGE_LOADED_ROUTE"
 
 export function reducer (state: RouterState = initialState, action: any) {
   if (action.type == CHANGE_CURRENT_PATH) {
-    return Object.assign({}, state, {currentPath: action.path})
+    return Object.assign({}, state, {currentPath: action.path, loadedRouteName: "", loadedRouteParams: {}})
   } else if (action.type == CHANGE_LOADED_ROUTE) {
     return Object.assign({}, state, {
       loadedRouteName: action.name,
