@@ -1,4 +1,4 @@
-export function find(array: any[], testFunc: (item: any, ix: number) => boolean): any {
+export function find<T>(array: T[], testFunc: (item: T, ix: number) => boolean): T | null {
   for (let ix = 0; ix < array.length; ix++) {
     const item = array[ix]
 
@@ -6,5 +6,6 @@ export function find(array: any[], testFunc: (item: any, ix: number) => boolean)
       return item
     }
   }
+
   return null
 }

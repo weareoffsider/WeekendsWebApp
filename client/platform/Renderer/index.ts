@@ -1,4 +1,6 @@
+import {Store} from 'redux'
 import {RouteStack} from '../Routing'
+import {RoutingActionsShape, RoutingStateShape} from '../Routing/state'
 import {matchPathToRoute} from '../Routing/Matching'
 import {find} from '../Utils'
 
@@ -6,11 +8,14 @@ import {find} from '../Utils'
 export interface RendererState {
 }
 
-export default function initializeRenderer (
+
+export default function initializeRenderer<
+  S extends Store<RoutingStateShape>, A extends RoutingActionsShape
+>(
   routeStack: RouteStack,
   viewElement: HTMLElement,
-  store: any,
-  actionsBundle: any
+  store: S,
+  actionsBundle: A
 ) {
   const activeViews: any = {}
 

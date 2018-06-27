@@ -1,7 +1,7 @@
 // TODO: build WeekendsWebApp
 // Platform Layer
-// Routing
-//   Loading Transitions
+// Routing READY
+//   Loading Transitions UNNECESSARY FOR NOW
 //
 // Utilities
 //   Common DOM Operations
@@ -13,7 +13,7 @@
 //   Numeric Formats
 //
 // Application State
-//   In Memory (lost every time there is a refresh)
+//   In Memory (lost every time there is a refresh) READY
 //   Local Database (IndexedDB)
 //   Local Storage (localStorage, sessionStorage)
 //
@@ -34,11 +34,9 @@ import {
 } from './platform/Routing'
 
 import initializeRenderer from './platform/Renderer'
-
 import RouterStateBundle from './platform/Routing/state'
-
 import createStateStore, {CounterStateBundle} from './platform/State'
-
+import {WeekendsWebAppState, WeekendsWebAppActions} from './AppState'
 
 const routeStack: RouteStack = {
   routes: [],
@@ -72,7 +70,11 @@ addRoute(
   function (params: any) {
     return Promise.resolve(true)
   },
-  function (viewElement: HTMLElement, params: any, appState: any) {
+  function (
+    viewElement: HTMLElement,
+    params: any,
+    appState: WeekendsWebAppState
+  ) {
     viewElement.innerHTML = `
       <h2>This is the home page</h2>
       <p>The count is ${appState.counter.count}</p>
@@ -96,7 +98,11 @@ addRoute(routeStack,
       window.setTimeout(resolve, 1000)
     })
   },
-  function (viewElement: HTMLElement, params: any, appState: any) {
+  function (
+    viewElement: HTMLElement,
+    params: any,
+    appState: WeekendsWebAppState
+  ) {
     viewElement.innerHTML = `
       <h2>This is the about page</h2>
       <p>The count is ${appState.counter.count}</p>
@@ -133,7 +139,11 @@ addRoute(routeStack,
       }, 2000)
     })
   },
-  function (viewElement: HTMLElement, params: any, appState: any) {
+  function (
+    viewElement: HTMLElement,
+    params: any,
+    appState: WeekendsWebAppState
+  ) {
     const {slug} = params
     viewElement.innerHTML = `
       <h2>This is an entry page - ${slug}</h2>
@@ -147,7 +157,7 @@ addRoute(routeStack,
 
 document.addEventListener('DOMContentLoaded', function (event) {
   const viewElement = document.getElementById('view')
-  const {store, actionsBundle} = createStateStore([
+  const {store, actionsBundle} = createStateStore<WeekendsWebAppState, WeekendsWebAppActions>([
     CounterStateBundle,
     RouterStateBundle,
   ])
@@ -158,10 +168,10 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
   incrementButton.addEventListener('click', actionsBundle.counter.incrementCount)
   decrementButton.addEventListener('click', actionsBundle.counter.decrementCount)
-
+  
   store.subscribe(() => {
     const state = store.getState()
-    countElement.textContent = state.counter.count
+    countElement.textContent = state.counter.count.toString()
   })
 
   initializeRenderer(routeStack, viewElement, store, actionsBundle)

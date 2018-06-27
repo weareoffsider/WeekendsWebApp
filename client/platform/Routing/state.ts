@@ -54,11 +54,20 @@ export const stateActions = {
   changeLoadedRoute,
 }
 
+
 export const stateBundle: StateBundle<RouterState> = {
   name: "routing",
   reducer,
   initial: initialState,
   actions: stateActions,
+}
+
+export interface RoutingStateShape {
+  routing: RouterState
+}
+
+export interface RoutingActionsShape {
+  routing: typeof stateActions
 }
 
 

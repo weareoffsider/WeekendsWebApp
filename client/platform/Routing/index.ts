@@ -1,3 +1,5 @@
+import {Store} from 'redux'
+import {RoutingActionsShape, RoutingStateShape} from './state'
 import {find} from '../Utils'
 
 export type ViewParams = {[key: string]: string}
@@ -38,17 +40,13 @@ export function normalizeRoute (targetRoute: string, pushStateIfWrong: boolean =
 }
 
 
-
-export function initializeRouter(
+export function initializeRouter<
+  S extends Store<RoutingStateShape>, A extends RoutingActionsShape
+>(
   routeStack: RouteStack,
-  store: any,
-  actionsBundle: any,
+  store: S,
+  actionsBundle: A,
 ) {
-  const routerState = {
-    activeContainers: [],
-  }
-
-
   window.addEventListener('popstate', function (event) {
     actionsBundle.routing.changeCurrentPath(
       normalizeRoute(window.location.pathname, true)
