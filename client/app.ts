@@ -38,6 +38,8 @@ import RouterStateBundle from './platform/Routing/state'
 import createStateStore, {CounterStateBundle} from './platform/State'
 import {WeekendsWebAppState, WeekendsWebAppActions} from './AppState'
 
+import {KeyValueStorage} from './platform/Persistence'
+
 const routeStack: RouteStack = {
   routes: [],
   renderError: function(viewElement: HTMLElement, params?: any) {
@@ -157,6 +159,9 @@ addRoute(routeStack,
 
 document.addEventListener('DOMContentLoaded', function (event) {
   const viewElement = document.getElementById('view')
+  const initialCounter = KeyValueStorage.get("counter", CounterStateBundle.initial)
+
+  CounterStateBundle.initial = initialCounter
   const {store, actionsBundle} = createStateStore<WeekendsWebAppState, WeekendsWebAppActions>([
     CounterStateBundle,
     RouterStateBundle,
@@ -171,6 +176,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
   
   store.subscribe(() => {
     const state = store.getState()
+    KeyValueStorage.set("counter", state.counter)
     countElement.textContent = state.counter.count.toString()
   })
 
