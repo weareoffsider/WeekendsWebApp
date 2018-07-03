@@ -33,12 +33,15 @@ import {
   DataNotFoundError, DataForbiddenError,
 } from './platform/Routing'
 
+
+
+
 import initializeRenderer from './platform/Renderer'
 import RouterStateBundle from './platform/Routing/state'
 import createStateStore, {CounterStateBundle} from './platform/State'
 import {WeekendsWebAppState, WeekendsWebAppActions} from './AppState'
 
-import {KeyValueStorage} from './platform/Persistence'
+import {DatabaseStorage, KeyValueStorage} from './platform/Persistence'
 
 const routeStack: RouteStack = {
   routes: [],
@@ -182,6 +185,33 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
   initializeRenderer(routeStack, viewElement, store, actionsBundle)
   initializeRouter(routeStack, store, actionsBundle)
+
+  const {AddStore, AddIndex} = DatabaseStorage.MigrationType
+  const migrations = [
+    // VERSION 1
+    {
+      actions: [
+        {type: AddStore, storeName: "authors", storeOpts: {keyPath: "id"}},
+        {type: AddStore, storeName: "articles", storeOpts: {keyPath: "id"}},
+        {type: AddIndex, storeName: "articles", fieldName: "author_id"},
+      ],
+    },
+    // VERSION 2
+    {
+      actions: [
+        {type: AddStore, storeName: "categories"},
+        {type: AddStore, storeName: "pages"},
+        {type: AddIndex, storeName: "articles", fieldName: "category_ids", indexOpts: {multiEntry: true}}
+      ],
+    }
+  ]
+
+  const db = DatabaseStorage.initializeDb("WWAData", migrations)
+
+  // db.addItem("authors", {id: "eoantheoantheoa", name: "Joe Bloggs", age: 51})
+  //   .then(() => {
+  //     console.log("DB SUCCESSFUL")
+  //   })
 })
 
 
