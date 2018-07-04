@@ -3,9 +3,8 @@ import {RoutingActionsShape, RoutingStateShape} from './state'
 import {find} from '../Utils'
 
 export type ViewParams = {[key: string]: string}
-type ViewRenderFunction = (viewElement: HTMLElement, params?: ViewParams, appState?: any) => void
-type PreloadFunction = (params?: ViewParams) => Promise<any>
-
+type ViewRenderFunction = (viewElement: HTMLElement, params?: ViewParams, appState?: any, context?: any) => void
+  type PreloadFunction = (params: ViewParams, context: any) => Promise<any>
 
 import renderer from '../Renderer'
 
@@ -41,11 +40,12 @@ export function normalizeRoute (targetRoute: string, pushStateIfWrong: boolean =
 
 
 export function initializeRouter<
-  S extends Store<RoutingStateShape>, A extends RoutingActionsShape
+  S extends Store<RoutingStateShape>, A extends RoutingActionsShape, C
 >(
   routeStack: RouteStack,
   store: S,
   actionsBundle: A,
+  context: C
 ) {
   window.addEventListener('popstate', function (event) {
     actionsBundle.routing.changeCurrentPath(
@@ -81,7 +81,7 @@ export function initializeRouter<
         if (!viewParams) { return false }
 
         // route matches if view params is not null, begin async loading
-        route.preload(viewParams).then((result) => {
+        route.preload(viewParams, context).then((result) => {
           // preload successful, begin render
           
           // dont actually render if we've already moved on from this route

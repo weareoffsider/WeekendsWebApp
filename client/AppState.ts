@@ -4,6 +4,8 @@ import {
 } from "./platform/State"
 
 
+import DB from './platform/Persistence/DatabaseStorage/DB'
+
 
 export interface WeekendsWebAppState extends
 RoutingStateShape,
@@ -15,4 +17,8 @@ export interface WeekendsWebAppActions extends
 RoutingActionsShape,
 CounterActionsShape
 {
+}
+
+export interface WeekendsWebAppContext {
+  db: DB
 }

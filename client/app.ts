@@ -39,9 +39,15 @@ import {
 import initializeRenderer from './platform/Renderer'
 import RouterStateBundle from './platform/Routing/state'
 import createStateStore, {CounterStateBundle} from './platform/State'
-import {WeekendsWebAppState, WeekendsWebAppActions} from './AppState'
+import {
+  WeekendsWebAppState, WeekendsWebAppActions,
+  WeekendsWebAppContext,
+} from './AppState'
 
 import {DatabaseStorage, KeyValueStorage} from './platform/Persistence'
+
+import allAuthors from './test-data/authors'
+import allArticles from './test-data/articles'
 
 const routeStack: RouteStack = {
   routes: [],
@@ -121,7 +127,7 @@ addRoute(routeStack,
 addRoute(routeStack,
   "entry",
   "/entry/:slug/",
-  function (params: any) {
+  function (params: any, context: WeekendsWebAppContext) {
     const validEntries = [
       'entry-one',
       'entry-two',
@@ -130,19 +136,9 @@ addRoute(routeStack,
       'entry-three',
       'entry-four',
     ]
+    console.log(context)
 
-    return new Promise((resolve, reject) => {
-      // reject(new Error("this is the entry route error"))
-      window.setTimeout(function() {
-        if (validEntries.indexOf(params.slug) != -1) {
-          resolve(true)
-        } else if (forbiddenEntries.indexOf(params.slug) != -1) {
-          reject(new DataForbiddenError("This entry could not be accessed."))
-        } else {
-          reject(new DataNotFoundError("This entry could not be found."))
-        }
-      }, 2000)
-    })
+    return context.db.getByKey('articles', params.slug)
   },
   function (
     viewElement: HTMLElement,
@@ -164,28 +160,38 @@ document.addEventListener('DOMContentLoaded', function (event) {
   const viewElement = document.getElementById('view')
   const initialCounter = KeyValueStorage.get("counter", CounterStateBundle.initial)
 
-  CounterStateBundle.initial = initialCounter
-  const {store, actionsBundle} = createStateStore<WeekendsWebAppState, WeekendsWebAppActions>([
-    CounterStateBundle,
-    RouterStateBundle,
-  ])
+  initializeData().then((db) => {
+    CounterStateBundle.initial = initialCounter
+    const {store, actionsBundle} = createStateStore<WeekendsWebAppState, WeekendsWebAppActions>([
+      CounterStateBundle,
+      RouterStateBundle,
+    ])
 
-  const countElement = document.querySelector('.count')
-  const incrementButton = document.querySelector('.increment')
-  const decrementButton = document.querySelector('.decrement')
+    const countElement = document.querySelector('.count')
+    const incrementButton = document.querySelector('.increment')
+    const decrementButton = document.querySelector('.decrement')
 
-  incrementButton.addEventListener('click', actionsBundle.counter.incrementCount)
-  decrementButton.addEventListener('click', actionsBundle.counter.decrementCount)
-  
-  store.subscribe(() => {
-    const state = store.getState()
-    KeyValueStorage.set("counter", state.counter)
-    countElement.textContent = state.counter.count.toString()
+    incrementButton.addEventListener('click', actionsBundle.counter.incrementCount)
+    decrementButton.addEventListener('click', actionsBundle.counter.decrementCount)
+    
+    store.subscribe(() => {
+      const state = store.getState()
+      KeyValueStorage.set("counter", state.counter)
+      countElement.textContent = state.counter.count.toString()
+    })
+
+    const context = {
+      db,
+    }
+
+    initializeRenderer(routeStack, viewElement, store, actionsBundle)
+    initializeRouter(routeStack, store, actionsBundle, context)
   })
+})
 
-  initializeRenderer(routeStack, viewElement, store, actionsBundle)
-  initializeRouter(routeStack, store, actionsBundle)
 
+
+function initializeData() {
   const {AddStore, AddIndex} = DatabaseStorage.MigrationType
   const migrations = [
     // VERSION 1
@@ -197,25 +203,29 @@ document.addEventListener('DOMContentLoaded', function (event) {
       ],
     },
     // VERSION 2
-    {
-      actions: [
-        {type: AddStore, storeName: "categories"},
-        {type: AddStore, storeName: "pages"},
-        {type: AddIndex, storeName: "articles", fieldName: "category_ids", indexOpts: {multiEntry: true}}
-      ],
-    }
+    // {
+    //   actions: [
+    //     {type: AddStore, storeName: "categories"},
+    //     {type: AddStore, storeName: "pages"},
+    //     {type: AddIndex, storeName: "articles", fieldName: "category_ids", indexOpts: {multiEntry: true}}
+    //   ],
+    // }
   ]
 
   const db = DatabaseStorage.initializeDb("WWAData", migrations)
 
-  // db.addItem("authors", {id: "eoantheoantheoa", name: "Joe Bloggs", age: 51})
-  //   .then(() => {
-  //     console.log("DB SUCCESSFUL")
-  //   })
-})
-
-
-
+  return Promise.all([]
+    // allAuthors.map((a) => {
+    //   return db.save("authors", a)
+    // }).concat(
+    //   allArticles.map((a) => {
+    //     return db.save("articles", a)
+    //   })
+    // )
+  ).then(() => {
+    return db
+  })
+}
 
 
 
