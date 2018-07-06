@@ -3,22 +3,27 @@ import {
   CounterStateShape, CounterActionsShape
 } from "./platform/State"
 
+import {ContentStateShape, ContentActionsShape} from './test-data/state'
+
 
 import DB from './platform/Persistence/DatabaseStorage/DB'
 
 
 export interface WeekendsWebAppState extends
 RoutingStateShape,
-CounterStateShape
+CounterStateShape,
+ContentStateShape
 {
 }
 
 export interface WeekendsWebAppActions extends
 RoutingActionsShape,
-CounterActionsShape
+CounterActionsShape,
+ContentActionsShape
 {
 }
 
 export interface WeekendsWebAppContext {
   db: DB
+  actions: WeekendsWebAppActions
 }

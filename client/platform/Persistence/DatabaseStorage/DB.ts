@@ -52,6 +52,29 @@ export default class DB {
     })
   }
 
+
+  getAll (storeName: string) {
+    return this.dbPromise.then((db) => {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName)
+        const store: any = tx.objectStore(storeName)
+        const storeRequest = store.getAll()
+        storeRequest.onsuccess = function (ev: any) {
+          console.log("SUCCESS", ev, storeRequest.result)
+          if (storeRequest.result != undefined) {
+            resolve(storeRequest.result)
+          } else {
+            resolve([])
+          }
+        }
+        storeRequest.onerror = function (ev: any) {
+          console.log("ERROR", ev)
+          reject(new Error("database had an error"))
+        }
+      })
+    })
+  }
+
   closeConnection () {
     return this.dbPromise.then((db) => {
       db.close()

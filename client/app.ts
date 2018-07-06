@@ -48,6 +48,7 @@ import {DatabaseStorage, KeyValueStorage} from './platform/Persistence'
 
 import allAuthors from './test-data/authors'
 import allArticles from './test-data/articles'
+import ContentStateBundle from './test-data/state'
 
 const routeStack: RouteStack = {
   routes: [],
@@ -78,22 +79,52 @@ addRoute(
   routeStack,
   "home",
   "/",
-  function (params: any) {
-    return Promise.resolve(true)
+  function (params: any, context: WeekendsWebAppContext) {
+    return Promise.all([
+      context.db.getAll('authors').then((authors: any[]) => {
+        authors.forEach((author) => {
+          context.actions.content.putContent('authors', author.id, author)
+        })
+      }),
+      context.db.getAll('articles').then((articles: any[]) => {
+        articles.forEach((article) => {
+          context.actions.content.putContent('articles', article.id, article)
+        })
+      }),
+    ])
   },
   function (
     viewElement: HTMLElement,
     params: any,
     appState: WeekendsWebAppState
   ) {
+
+    const entries = []
+
+    const articles = Object.keys(appState.content.articles).map((articleId: string) => {
+      return appState.content.articles[articleId]
+    })
+
+    articles.sort((a, b) => {
+      return a.title.localeCompare(b.title)
+    })
+
+    const articlesRender = articles.map((article: any) => {
+      const author = appState.content.authors[article.author_id]
+
+      return `
+        <li><a href="${getUrl(routeStack, 'entry', {slug: article.id})}">
+          ${article.title} - by ${author.full_name}
+        </a></li>
+      `
+    })
+    
     viewElement.innerHTML = `
       <h2>This is the home page</h2>
       <p>The count is ${appState.counter.count}</p>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam hendrerit suscipit dui vitae aliquet. Nullam suscipit varius erat eu sagittis. Ut efficitur bibendum nibh, in faucibus urna interdum ut. Duis faucibus tellus id suscipit vulputate. Nunc nunc magna, egestas id gravida eget, scelerisque quis odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur vitae massa eu dui bibendum aliquam. </p>
       <ul>
-        <li><a href="${getUrl(routeStack, 'entry', {slug: "entry-one"})}">Entry One</a></li>
-        <li><a href="${getUrl(routeStack, 'entry', {slug: "entry-two"})}">Entry Two</a></li>
-        <li><a href="${getUrl(routeStack, 'entry', {slug: "entry-three"})}">Entry Three</a></li>
+        ${articlesRender.join('\n')}
       </ul>
       <a href="${getUrl(routeStack, 'about')}">About</a>
       <a href="https://www.google.com">Go To Google</a>
@@ -123,7 +154,6 @@ addRoute(routeStack,
   }
 )
 
-
 addRoute(routeStack,
   "entry",
   "/entry/:slug/",
@@ -136,9 +166,14 @@ addRoute(routeStack,
       'entry-three',
       'entry-four',
     ]
-    console.log(context)
 
     return context.db.getByKey('articles', params.slug)
+      .then((article: any) => {
+        context.actions.content.putContent('articles', article.id, article)
+        return context.db.getByKey('authors', article.author_id)
+      }).then((author: any) => {
+        context.actions.content.putContent('authors', author.id, author)
+      })
   },
   function (
     viewElement: HTMLElement,
@@ -146,10 +181,14 @@ addRoute(routeStack,
     appState: WeekendsWebAppState
   ) {
     const {slug} = params
+    const article = appState.content.articles[params.slug]
+    const author = appState.content.authors[article.author_id]
+    
     viewElement.innerHTML = `
-      <h2>This is an entry page - ${slug}</h2>
+      <h2>${article.title}</h2>
+      <p>By ${author.full_name}</p>
       <p>The count is ${appState.counter.count}</p>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam hendrerit suscipit dui vitae aliquet. Nullam suscipit varius erat eu sagittis. Ut efficitur bibendum nibh, in faucibus urna interdum ut. Duis faucibus tellus id suscipit vulputate. Nunc nunc magna, egestas id gravida eget, scelerisque quis odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur vitae massa eu dui bibendum aliquam. </p>
+      <p>${article.content}</p>
       <a href="${getUrl(routeStack, 'home')}">Home</a>
     `
   }
@@ -165,6 +204,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
     const {store, actionsBundle} = createStateStore<WeekendsWebAppState, WeekendsWebAppActions>([
       CounterStateBundle,
       RouterStateBundle,
+      ContentStateBundle,
     ])
 
     const countElement = document.querySelector('.count')
@@ -182,6 +222,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
     const context = {
       db,
+      actions: actionsBundle,
     }
 
     initializeRenderer(routeStack, viewElement, store, actionsBundle)
@@ -214,7 +255,8 @@ function initializeData() {
 
   const db = DatabaseStorage.initializeDb("WWAData", migrations)
 
-  return Promise.all([]
+  return Promise.all(
+    []
     // allAuthors.map((a) => {
     //   return db.save("authors", a)
     // }).concat(
