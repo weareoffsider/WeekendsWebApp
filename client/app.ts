@@ -105,8 +105,15 @@ addRoute(
       return appState.content.articles[articleId]
     })
 
+    const authors = Object.keys(appState.content.authors).map((author_id: string) => {
+      return appState.content.authors[author_id]
+    })
+
     articles.sort((a, b) => {
       return a.title.localeCompare(b.title)
+    })
+    authors.sort((a, b) => {
+      return a.full_name.localeCompare(b.full_name)
     })
 
     const articlesRender = articles.map((article: any) => {
@@ -118,6 +125,14 @@ addRoute(
         </a></li>
       `
     })
+
+    const authorsRender = authors.map((author: any) => {
+      return `
+        <li><a href="${getUrl(routeStack, 'author', {id: author.id})}">
+          ${author.full_name}
+        </a></li>
+      `
+    })
     
     viewElement.innerHTML = `
       <h2>This is the home page</h2>
@@ -125,6 +140,10 @@ addRoute(
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam hendrerit suscipit dui vitae aliquet. Nullam suscipit varius erat eu sagittis. Ut efficitur bibendum nibh, in faucibus urna interdum ut. Duis faucibus tellus id suscipit vulputate. Nunc nunc magna, egestas id gravida eget, scelerisque quis odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur vitae massa eu dui bibendum aliquam. </p>
       <ul>
         ${articlesRender.join('\n')}
+      </ul>
+      <hr/>
+      <ul>
+        ${authorsRender.join('\n')}
       </ul>
       <a href="${getUrl(routeStack, 'about')}">About</a>
       <a href="https://www.google.com">Go To Google</a>
@@ -158,15 +177,6 @@ addRoute(routeStack,
   "entry",
   "/entry/:slug/",
   function (params: any, context: WeekendsWebAppContext) {
-    const validEntries = [
-      'entry-one',
-      'entry-two',
-    ]
-    const forbiddenEntries = [
-      'entry-three',
-      'entry-four',
-    ]
-
     return context.db.getByKey('articles', params.slug)
       .then((article: any) => {
         context.actions.content.putContent('articles', article.id, article)
@@ -186,9 +196,68 @@ addRoute(routeStack,
     
     viewElement.innerHTML = `
       <h2>${article.title}</h2>
-      <p>By ${author.full_name}</p>
+      <p>By <a href="${getUrl(routeStack, 'author', {id: author.id})}">${author.full_name}</a></p>
       <p>The count is ${appState.counter.count}</p>
       <p>${article.content}</p>
+      <a href="${getUrl(routeStack, 'home')}">Home</a>
+    `
+  }
+)
+
+
+addRoute(routeStack,
+  "author",
+  "/author/:id/",
+  function (params: any, context: WeekendsWebAppContext) {
+    return context.db.getByKey('authors', params.id)
+      .then((author: any) => {
+        context.actions.content.putContent('authors', author.id, author)
+
+        const query = {
+          store: 'articles',
+          filters: [
+            { key: 'author_id', lookup: 'equals', value: author.id, },
+          ]
+        }
+
+        return context.db.query(query)
+      }).then((articles: any) => {
+        articles.forEach((article: any) => {
+          context.actions.content.putContent('articles', article.id, article)
+        })
+      })
+  },
+  function (
+    viewElement: HTMLElement,
+    params: any,
+    appState: WeekendsWebAppState
+  ) {
+    const {id} = params
+    const author = appState.content.authors[id]
+
+    const articles = Object.keys(appState.content.articles).map((articleId: string) => {
+      return appState.content.articles[articleId]
+    }).filter((article) => {
+      return article.author_id == author.id
+    })
+
+    articles.sort((a, b) => {
+      return a.title.localeCompare(b.title)
+    })
+
+    const articlesRender = articles.map((article: any) => {
+      const author = appState.content.authors[article.author_id]
+
+      return `
+        <li><a href="${getUrl(routeStack, 'entry', {slug: article.id})}">
+          ${article.title} - by ${author.full_name}
+        </a></li>
+      `
+    }).join('')
+    
+    viewElement.innerHTML = `
+      <h2>${author.full_name}</h2>
+      <ul>${articlesRender}</ul>
       <a href="${getUrl(routeStack, 'home')}">Home</a>
     `
   }
@@ -241,6 +310,7 @@ function initializeData() {
         {type: AddStore, storeName: "authors", storeOpts: {keyPath: "id"}},
         {type: AddStore, storeName: "articles", storeOpts: {keyPath: "id"}},
         {type: AddIndex, storeName: "articles", fieldName: "author_id"},
+        {type: AddIndex, storeName: "articles", fieldName: "title"},
       ],
     },
     // VERSION 2

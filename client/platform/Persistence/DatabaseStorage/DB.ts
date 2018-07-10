@@ -1,6 +1,10 @@
 const READ_WRITE = "readwrite"
 
 import {DataNotFoundError} from '../../Routing'
+import {
+  QueryDefinition,
+  createKeyRangeForFilter,
+} from './Query'
 
 export default class DB {
 
@@ -52,6 +56,44 @@ export default class DB {
     })
   }
 
+  query (queryDefinition: QueryDefinition) {
+    return this.dbPromise.then((db) => {
+      return new Promise((resolve, reject) => {
+        const storeName = queryDefinition.store
+        const tx = db.transaction(storeName)
+        const store: any = tx.objectStore(storeName)
+        const initialFilter = queryDefinition.filters.length > 0
+          ? queryDefinition.filters[0]
+          : null
+
+        const keyRange = createKeyRangeForFilter(initialFilter)
+        let storeRequest
+        if (!keyRange) {
+          storeRequest = store.openCursor()
+        } else {
+          const index = store.index(initialFilter.key)
+          storeRequest = index.openCursor(keyRange)
+        }
+
+        const results: any[] = []
+        storeRequest.onsuccess = function (ev: any) {
+          if (ev.target.result) {
+            const cursor = (ev.target.result as IDBCursorWithValue)
+            // TODO: filtering logic done with JS
+            results.push(cursor.value)
+            cursor.continue()
+          } else {
+            console.log("QUERY END", queryDefinition, results)
+            resolve(results)
+          }
+        }
+        storeRequest.onerror = function (ev: any) {
+          console.log("ERROR", ev)
+          reject(new Error("database had an error"))
+        }
+      })
+    })
+  }
 
   getAll (storeName: string) {
     return this.dbPromise.then((db) => {
