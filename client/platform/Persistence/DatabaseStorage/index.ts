@@ -6,6 +6,20 @@ import DB from './DB'
 
 
 
+function deleteDb(name: string) {
+  return new Promise((resolve, reject) => {
+    const request = idb.deleteDatabase(name)
+    
+    request.onerror = (ev: Event) => {
+      console.log("ERROR DELETING DATABASE", ev)
+      reject(ev)
+    }
+    request.onsuccess = (ev: any) => {
+      console.log("DATABASE DELETION SUCCESSFUL", ev)
+      resolve(true)
+    }
+  })
+}
 
 function initializeDb(
   name: string,
@@ -43,5 +57,10 @@ function initializeDb(
 
 export default {
   initializeDb,
+  deleteDb,
   MigrationType,
+}
+
+export {
+  DB,
 }

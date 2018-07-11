@@ -44,7 +44,7 @@ import {
   WeekendsWebAppContext,
 } from './AppState'
 
-import {DatabaseStorage, KeyValueStorage} from './platform/Persistence'
+import {DB, DatabaseStorage, KeyValueStorage} from './platform/Persistence'
 
 import allAuthors from './test-data/authors'
 import allArticles from './test-data/articles'
@@ -110,7 +110,7 @@ addRoute(
     })
 
     articles.sort((a, b) => {
-      return a.title.localeCompare(b.title)
+      return a.publication_date.localeCompare(b.publication_date) * -1
     })
     authors.sort((a, b) => {
       return a.full_name.localeCompare(b.full_name)
@@ -121,7 +121,7 @@ addRoute(
 
       return `
         <li><a href="${getUrl(routeStack, 'entry', {slug: article.id})}">
-          ${article.title} - by ${author.full_name}
+          ${article.title} - by ${author.full_name} on ${article.publication_date}
         </a></li>
       `
     })
@@ -217,6 +217,7 @@ addRoute(routeStack,
           store: 'articles',
           filters: [
             { key: 'author_id', lookup: 'equals', value: author.id, },
+            // { key: 'publication_date', lookup: 'lt', value: '2017-01-01', },
           ]
         }
 
@@ -242,7 +243,7 @@ addRoute(routeStack,
     })
 
     articles.sort((a, b) => {
-      return a.title.localeCompare(b.title)
+      return a.publication_date.localeCompare(b.publication_date) * -1
     })
 
     const articlesRender = articles.map((article: any) => {
@@ -250,7 +251,7 @@ addRoute(routeStack,
 
       return `
         <li><a href="${getUrl(routeStack, 'entry', {slug: article.id})}">
-          ${article.title} - by ${author.full_name}
+          ${article.title} - by ${author.full_name} - ${article.publication_date}
         </a></li>
       `
     }).join('')
@@ -310,6 +311,7 @@ function initializeData() {
         {type: AddStore, storeName: "authors", storeOpts: {keyPath: "id"}},
         {type: AddStore, storeName: "articles", storeOpts: {keyPath: "id"}},
         {type: AddIndex, storeName: "articles", fieldName: "author_id"},
+        {type: AddIndex, storeName: "articles", fieldName: "publication_date"},
         {type: AddIndex, storeName: "articles", fieldName: "title"},
       ],
     },
@@ -323,20 +325,24 @@ function initializeData() {
     // }
   ]
 
-  const db = DatabaseStorage.initializeDb("WWAData", migrations)
 
-  return Promise.all(
-    []
-    // allAuthors.map((a) => {
-    //   return db.save("authors", a)
-    // }).concat(
-    //   allArticles.map((a) => {
-    //     return db.save("articles", a)
-    //   })
-    // )
-  ).then(() => {
-    return db
-  })
+  let db: DB
+
+  return DatabaseStorage.deleteDb("WWAData")
+    .then(() => {
+      db = DatabaseStorage.initializeDb("WWAData", migrations)
+      return Promise.all(
+        allAuthors.map((a) => {
+          return db.save("authors", a)
+        }).concat(
+          allArticles.map((a) => {
+            return db.save("articles", a)
+          })
+        )
+      )
+    }).then(() => {
+      return db
+    })
 }
 
 

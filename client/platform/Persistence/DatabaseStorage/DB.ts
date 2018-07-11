@@ -3,6 +3,8 @@ const READ_WRITE = "readwrite"
 import {DataNotFoundError} from '../../Routing'
 import {
   QueryDefinition,
+  FilterDefinition,
+  applyJavascriptFilter,
   createKeyRangeForFilter,
 } from './Query'
 
@@ -66,21 +68,30 @@ export default class DB {
           ? queryDefinition.filters[0]
           : null
 
-        const keyRange = createKeyRangeForFilter(initialFilter)
+        const keyRange = initialFilter
+          ? createKeyRangeForFilter(initialFilter)
+          : null
         let storeRequest
+        let jsFilters: FilterDefinition[]
         if (!keyRange) {
           storeRequest = store.openCursor()
+          jsFilters = queryDefinition.filters
         } else {
           const index = store.index(initialFilter.key)
           storeRequest = index.openCursor(keyRange)
+          jsFilters = queryDefinition.filters.slice(1)
         }
 
         const results: any[] = []
         storeRequest.onsuccess = function (ev: any) {
           if (ev.target.result) {
             const cursor = (ev.target.result as IDBCursorWithValue)
-            // TODO: filtering logic done with JS
+            const matchedQuery = jsFilters.every((filter) => {
+              return applyJavascriptFilter(filter, cursor.value)
+            })
+            if (matchedQuery) {
             results.push(cursor.value)
+            }
             cursor.continue()
           } else {
             console.log("QUERY END", queryDefinition, results)
