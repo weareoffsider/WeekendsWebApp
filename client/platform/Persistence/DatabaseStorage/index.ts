@@ -2,8 +2,8 @@ const idb = window.indexedDB
 
 
 import {MigrationType, Migration, applyMigrations} from './Migrations'
+import {DBSchema, FieldType, RelationshipType} from './Schema'
 import DB from './DB'
-
 
 
 function deleteDb(name: string) {
@@ -22,11 +22,10 @@ function deleteDb(name: string) {
 }
 
 function initializeDb(
-  name: string,
-  migrations: Migration[]
+  schema: DBSchema
 ) {
   const databaseReady = new Promise<IDBDatabase>((resolve, reject) => {
-    const request = idb.open(name, migrations.length)
+    const request = idb.open(schema.name, schema.migrations.length)
 
     request.onerror = (ev: Event) => {
       console.log("DATABASE ERROR", ev)
@@ -45,13 +44,13 @@ function initializeDb(
       const newVersion = ev.newVersion
       const db = (ev.target.result as IDBDatabase)
       const transaction = (ev.target.transaction as IDBTransaction)
-      const migrationsToApply = migrations.slice(oldVersion)
+      const migrationsToApply = schema.migrations.slice(oldVersion)
 
       applyMigrations(db, transaction, migrationsToApply)
     }
   })
 
-  return new DB(databaseReady)
+  return new DB(databaseReady, schema)
 }
 
 
@@ -59,6 +58,8 @@ export default {
   initializeDb,
   deleteDb,
   MigrationType,
+  FieldType,
+  RelationshipType,
 }
 
 export {

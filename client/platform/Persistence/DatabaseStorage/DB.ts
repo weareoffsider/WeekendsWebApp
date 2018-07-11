@@ -7,11 +7,13 @@ import {
   applyJavascriptFilter,
   createKeyRangeForFilter,
 } from './Query'
+import {DBSchema} from './Schema'
 
 export default class DB {
 
   constructor (
-    private dbPromise: Promise<IDBDatabase>
+    private dbPromise: Promise<IDBDatabase>,
+    public schema: DBSchema
   ) {
     this.dbPromise = dbPromise
   }

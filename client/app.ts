@@ -14,8 +14,8 @@
 //
 // Application State
 //   In Memory (lost every time there is a refresh) READY
-//   Local Database (IndexedDB)
-//   Local Storage (localStorage, sessionStorage)
+//   Local Database (IndexedDB) READY
+//   Local Storage (localStorage, sessionStorage) READY
 //
 // Notifications
 // Location Service
@@ -304,6 +304,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
 function initializeData() {
   const {AddStore, AddIndex} = DatabaseStorage.MigrationType
+  const {FieldType, RelationshipType} = DatabaseStorage
   const migrations = [
     // VERSION 1
     {
@@ -325,12 +326,41 @@ function initializeData() {
     // }
   ]
 
+  const schema = {
+    name: "WWAData",
+    migrations,
+    stores: {
+      "authors": {
+        name: "authors",
+        fields: {
+          "id": {indexed: true, type: FieldType.String},
+          "full_name": {indexed: false, type: FieldType.String},
+        },
+        relationships: {
+          "articles": {type: RelationshipType.HasMany, thisKey: "id", storeName: "articles", storeKey: "author_id"},
+        }
+      }, 
+      "articles": {
+        name: "articles",
+        fields: {
+          "id": {indexed: true, type: FieldType.String},
+          "author_id": {indexed: true, type: FieldType.String},
+          "title": {indexed: true, type: FieldType.String},
+          "publication_date": {indexed: true, type: FieldType.Date},
+          "content": {type: FieldType.String},
+        },
+        relationships: {
+          "author": {type: RelationshipType.BelongsTo, thisKey: "author_id", storeName: "authors", storeKey: "id"},
+        }
+      },
+    }
+  }
 
   let db: DB
 
   return DatabaseStorage.deleteDb("WWAData")
     .then(() => {
-      db = DatabaseStorage.initializeDb("WWAData", migrations)
+      db = DatabaseStorage.initializeDb(schema)
       return Promise.all(
         allAuthors.map((a) => {
           return db.save("authors", a)
