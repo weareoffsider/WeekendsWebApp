@@ -10,12 +10,13 @@ export interface RendererState {
 
 
 export default function initializeRenderer<
-  S extends Store<RoutingStateShape>, A extends RoutingActionsShape
+  S extends Store<RoutingStateShape>, A extends RoutingActionsShape, C
 >(
   routeStack: RouteStack,
   viewElement: HTMLElement,
   store: S,
-  actionsBundle: A
+  actionsBundle: A,
+  context: C
 ) {
   const activeViews: any = {}
 
@@ -59,7 +60,8 @@ export default function initializeRenderer<
         mainRouteToRender.render(
           container,
           viewParams,
-          appState
+          appState,
+          context
         )
       } catch (e) {
         activeViews[currentLocation].route = { render: routeStack.renderError }
@@ -87,7 +89,7 @@ export default function initializeRenderer<
     Object.keys(activeViews).forEach((path) => {
       const {container, route, params} = activeViews[path]
       if (route) {
-        route.render(container, params, appState)
+        route.render(container, params, appState, context)
       }
     })
   })

@@ -4,7 +4,7 @@ import {find} from '../Utils'
 
 export type ViewParams = {[key: string]: string}
 type ViewRenderFunction = (viewElement: HTMLElement, params?: ViewParams, appState?: any, context?: any) => void
-  type PreloadFunction = (params: ViewParams, context: any) => Promise<any>
+type PreloadFunction = (params: ViewParams, context: any) => Promise<any>
 
 import renderer from '../Renderer'
 

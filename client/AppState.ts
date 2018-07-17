@@ -7,6 +7,7 @@ import {ContentStateShape, ContentActionsShape} from './test-data/state'
 
 
 import DB from './platform/Persistence/DatabaseStorage/DB'
+import LocalizeContext from './platform/Localize'
 
 
 export interface WeekendsWebAppState extends
@@ -25,5 +26,6 @@ ContentActionsShape
 
 export interface WeekendsWebAppContext {
   db: DB
+  localize: LocalizeContext,
   actions: WeekendsWebAppActions
 }

@@ -49,6 +49,8 @@
     "webpack": "4.11.1"
   },
   "dependencies": {
+    "@types/i18next": "^8.4.4",
+    "i18next": "^11.3.6",
     "redux": "^4.0.0"
   }
 }

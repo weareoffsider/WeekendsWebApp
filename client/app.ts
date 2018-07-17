@@ -45,10 +45,14 @@ import {
 } from './AppState'
 
 import {DB, DatabaseStorage, KeyValueStorage} from './platform/Persistence'
+import LocalizeContext from './platform/Localize'
 
 import allAuthors from './test-data/authors'
 import allArticles from './test-data/articles'
 import ContentStateBundle from './test-data/state'
+
+
+import enTranslation from './locales/en.json'
 
 const routeStack: RouteStack = {
   routes: [],
@@ -96,7 +100,8 @@ addRoute(
   function (
     viewElement: HTMLElement,
     params: any,
-    appState: WeekendsWebAppState
+    appState: WeekendsWebAppState,
+    context: WeekendsWebAppContext
   ) {
 
     const entries = []
@@ -116,12 +121,20 @@ addRoute(
       return a.full_name.localeCompare(b.full_name)
     })
 
+    const t_ = context.localize.translate
+
     const articlesRender = articles.map((article: any) => {
       const author = appState.content.authors[article.author_id]
 
       return `
         <li><a href="${getUrl(routeStack, 'entry', {slug: article.id})}">
-          ${article.title} - by ${author.full_name} on ${article.publication_date}
+          ${t_(
+            'home_page.article_line',
+            {
+              title: article.title, author_name: author.full_name,
+              publication_date: article.publication_date
+            }
+          )}
         </a></li>
       `
     })
@@ -135,9 +148,8 @@ addRoute(
     })
     
     viewElement.innerHTML = `
-      <h2>This is the home page</h2>
-      <p>The count is ${appState.counter.count}</p>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam hendrerit suscipit dui vitae aliquet. Nullam suscipit varius erat eu sagittis. Ut efficitur bibendum nibh, in faucibus urna interdum ut. Duis faucibus tellus id suscipit vulputate. Nunc nunc magna, egestas id gravida eget, scelerisque quis odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur vitae massa eu dui bibendum aliquam. </p>
+      <h2>${t_('home_page.title')}</h2>
+      <p>${t_('home_page.counter', {count: appState.counter.count})}</p>
       <ul>
         ${articlesRender.join('\n')}
       </ul>
@@ -145,8 +157,8 @@ addRoute(
       <ul>
         ${authorsRender.join('\n')}
       </ul>
-      <a href="${getUrl(routeStack, 'about')}">About</a>
-      <a href="https://www.google.com">Go To Google</a>
+      <a href="${getUrl(routeStack, 'about')}">${t_('about_page.title')}</a>
+      <a href="https://www.google.com">${t_('home_page.google_link')}</a>
     `
   }
 )
@@ -162,13 +174,15 @@ addRoute(routeStack,
   function (
     viewElement: HTMLElement,
     params: any,
-    appState: WeekendsWebAppState
+    appState: WeekendsWebAppState,
+    context: WeekendsWebAppContext
   ) {
+    const t_ = context.localize.translate
+
     viewElement.innerHTML = `
-      <h2>This is the about page</h2>
-      <p>The count is ${appState.counter.count}</p>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam hendrerit suscipit dui vitae aliquet. Nullam suscipit varius erat eu sagittis. Ut efficitur bibendum nibh, in faucibus urna interdum ut. Duis faucibus tellus id suscipit vulputate. Nunc nunc magna, egestas id gravida eget, scelerisque quis odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur vitae massa eu dui bibendum aliquam. </p>
-      <a href="${getUrl(routeStack, 'home')}">Home</a>
+      <h2>${t_("about_page.title")}</h2>
+      <p>${t_('home_page.counter', {count: appState.counter.count})}</p>
+      <a href="${getUrl(routeStack, 'home')}">${t_('home_page.title')}</a>
     `
   }
 )
@@ -188,18 +202,20 @@ addRoute(routeStack,
   function (
     viewElement: HTMLElement,
     params: any,
-    appState: WeekendsWebAppState
+    appState: WeekendsWebAppState,
+    context: WeekendsWebAppContext
   ) {
     const {slug} = params
     const article = appState.content.articles[params.slug]
     const author = appState.content.authors[article.author_id]
-    
+    const t_ = context.localize.translate
+
     viewElement.innerHTML = `
       <h2>${article.title}</h2>
       <p>By <a href="${getUrl(routeStack, 'author', {id: author.id})}">${author.full_name}</a></p>
-      <p>The count is ${appState.counter.count}</p>
+      <p>${t_('home_page.counter', {count: appState.counter.count})}</p>
       <p>${article.content}</p>
-      <a href="${getUrl(routeStack, 'home')}">Home</a>
+      <a href="${getUrl(routeStack, 'home')}">${t_('home_page.title')}</a>
     `
   }
 )
@@ -231,10 +247,12 @@ addRoute(routeStack,
   function (
     viewElement: HTMLElement,
     params: any,
-    appState: WeekendsWebAppState
+    appState: WeekendsWebAppState,
+    context: WeekendsWebAppContext
   ) {
     const {id} = params
     const author = appState.content.authors[id]
+    const t_ = context.localize.translate
 
     const articles = Object.keys(appState.content.articles).map((articleId: string) => {
       return appState.content.articles[articleId]
@@ -251,7 +269,13 @@ addRoute(routeStack,
 
       return `
         <li><a href="${getUrl(routeStack, 'entry', {slug: article.id})}">
-          ${article.title} - by ${author.full_name} - ${article.publication_date}
+          ${t_(
+            'home_page.article_line',
+            {
+              title: article.title, author_name: author.full_name,
+              publication_date: article.publication_date
+            }
+          )}
         </a></li>
       `
     }).join('')
@@ -259,7 +283,7 @@ addRoute(routeStack,
     viewElement.innerHTML = `
       <h2>${author.full_name}</h2>
       <ul>${articlesRender}</ul>
-      <a href="${getUrl(routeStack, 'home')}">Home</a>
+      <a href="${getUrl(routeStack, 'home')}">${t_('home_page.title')}</a>
     `
   }
 )
@@ -292,10 +316,13 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
     const context = {
       db,
+      localize: new LocalizeContext('en', {
+        en: enTranslation,
+      }),
       actions: actionsBundle,
     }
 
-    initializeRenderer(routeStack, viewElement, store, actionsBundle)
+    initializeRenderer(routeStack, viewElement, store, actionsBundle, context)
     initializeRouter(routeStack, store, actionsBundle, context)
   })
 })
