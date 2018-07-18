@@ -5,7 +5,6 @@
     "noImplicitAny": true,
     "lib": [
       "es2016",
-      "node",
       "dom"
     ]
   }

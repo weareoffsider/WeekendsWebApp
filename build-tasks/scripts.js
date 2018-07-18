@@ -1,6 +1,7 @@
 var gulp = require('gulp')
 var path = require('path')
 var webpack = require('webpack')
+var BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin
 
 var CONFIG = require('./config')
 let webpackCompiler
@@ -23,6 +24,9 @@ gulp.task("scripts", function (done) {
         filename: "app.js",
         path: path.resolve(__dirname, "../" + CONFIG.paths.buildWebAssets),
       },
+      plugins: [
+        new BundleAnalyzerPlugin()
+      ]
     }
     webpackCompiler = webpack(WEBPACK_CONFIG)
   }
