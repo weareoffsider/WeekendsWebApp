@@ -52,7 +52,7 @@ import allArticles from './test-data/articles'
 import ContentStateBundle from './test-data/state'
 
 
-import enTranslation from './locales/en.json'
+const enTranslation = require('./locales/en.json')
 
 const routeStack: RouteStack = {
   routes: [],
@@ -122,6 +122,7 @@ addRoute(
     })
 
     const t_ = context.localize.translate
+    const formatDate = context.localize.formatDate
 
     const articlesRender = articles.map((article: any) => {
       const author = appState.content.authors[article.author_id]
@@ -132,7 +133,7 @@ addRoute(
             'home_page.article_line',
             {
               title: article.title, author_name: author.full_name,
-              publication_date: article.publication_date
+              publication_date: formatDate(article.publication_date, 'full'),
             }
           )}
         </a></li>
@@ -209,10 +210,12 @@ addRoute(routeStack,
     const article = appState.content.articles[params.slug]
     const author = appState.content.authors[article.author_id]
     const t_ = context.localize.translate
+    const fdtUTC = context.localize.formatDateTimeUTC
 
     viewElement.innerHTML = `
       <h2>${article.title}</h2>
       <p>By <a href="${getUrl(routeStack, 'author', {id: author.id})}">${author.full_name}</a></p>
+      <p>${fdtUTC(article.publication_date, 'abbr-local')}</p>
       <p>${t_('home_page.counter', {count: appState.counter.count})}</p>
       <p>${article.content}</p>
       <a href="${getUrl(routeStack, 'home')}">${t_('home_page.title')}</a>
@@ -253,6 +256,7 @@ addRoute(routeStack,
     const {id} = params
     const author = appState.content.authors[id]
     const t_ = context.localize.translate
+    const formatDate = context.localize.formatDate
 
     const articles = Object.keys(appState.content.articles).map((articleId: string) => {
       return appState.content.articles[articleId]
@@ -273,7 +277,7 @@ addRoute(routeStack,
             'home_page.article_line',
             {
               title: article.title, author_name: author.full_name,
-              publication_date: article.publication_date
+              publication_date: formatDate(article.publication_date, 'full'),
             }
           )}
         </a></li>
@@ -316,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
     const context = {
       db,
-      localize: new LocalizeContext('en', {
+      localize: new LocalizeContext('en-AU', {
         en: enTranslation,
       }),
       actions: actionsBundle,
