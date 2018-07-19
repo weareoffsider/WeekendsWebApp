@@ -8,9 +8,9 @@
 //   Math Operations
 //
 // Internationalization (i18n) / Localization (l10n)
-//   Translation Functions
-//   Dates & Times
-//   Numeric Formats
+//   Translation Functions DONE
+//   Dates & Times DONE
+//   Numeric Formats DONE
 //
 // Application State
 //   In Memory (lost every time there is a refresh) READY
@@ -123,6 +123,10 @@ addRoute(
 
     const t_ = context.localize.translate
     const formatDate = context.localize.formatDate
+    const formatNumber = context.localize.formatNumber
+    const formatCurrency = context.localize.formatCurrency
+    const formatPercentage = context.localize.formatPercentage
+    const formatStorageSize = context.localize.formatStorageSize
 
     const articlesRender = articles.map((article: any) => {
       const author = appState.content.authors[article.author_id]
@@ -151,6 +155,16 @@ addRoute(
     viewElement.innerHTML = `
       <h2>${t_('home_page.title')}</h2>
       <p>${t_('home_page.counter', {count: appState.counter.count})}</p>
+      <p>${formatNumber(103021982309821)}</p>
+      <p>${formatStorageSize(10302198321)}</p>
+      <p>${formatStorageSize(1030219, 'full-reduce')}</p>
+      <p>${formatStorageSize(10302)}</p>
+      <p>${formatStorageSize(12)}</p>
+      <p>${formatCurrency(103021982, "AUD", "abbr-thousands")}</p>
+      <p>${formatCurrency(103021302, "AUD", "abbr-thousands")}</p>
+      <p>${formatCurrency(108221302, "AUD", "abbr-thousands")}</p>
+      <p>${formatCurrency(1302, "AUD", "abbr-thousands")}</p>
+      <p>${formatPercentage(0.20)}</p>
       <ul>
         ${articlesRender.join('\n')}
       </ul>

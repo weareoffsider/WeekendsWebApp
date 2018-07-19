@@ -1,5 +1,30 @@
 {
   "translation": {
+    "storage_size_units": {
+      "abbr": {
+        "bytes": "b",
+        "kilobytes": "kb",
+        "megabytes": "Mb",
+        "gigabytes": "Gb",
+        "terabytes": "Tb",
+        "petabytes": "Pb"
+      },
+      "full": {
+        "bytes": " bytes",
+        "kilobytes": " kilobytes",
+        "megabytes": " megabytes",
+        "gigabytes": " gigabytes",
+        "terabytes": " terabytes",
+        "petabytes": " petabytes"
+      }
+    },
+    "currency_abbreviations": {
+      "thousand": "K",
+      "million": "M",
+      "billion": "B",
+      "trillion": "T",
+      "quadrillion": "P"
+    },
     "home_page": {
       "title": "This is the home page",
       "counter": "You pressed the button {{count}} time.",
