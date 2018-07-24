@@ -42,7 +42,7 @@ export function getUrl(
 export function matchPathToRoute (path: string, matcher: string): ViewParams {
   const pathSegments = path.split("/")
   const matcherSegments = matcher.split("/")
-  const viewParams = {}
+  const viewParams: {[key: string]: string} = {}
 
   if (pathSegments.length != matcherSegments.length) {
     return null

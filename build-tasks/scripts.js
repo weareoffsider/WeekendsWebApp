@@ -8,26 +8,40 @@ let webpackCompiler
 let startedWebpackWatcher
 
 gulp.task("scripts", function (done) {
-  if (!webpackCompiler) {
-    const WEBPACK_CONFIG = {
-      mode: "development",
-      entry: "./" + CONFIG.paths.clientSrc + "/app.ts",
-      resolve: {
-        extensions: [".ts", ".tsx", ".js"]
-      },
-      module: {
-        rules: [
-          { test: /\.tsx?$/, loader: "ts-loader" }
-        ]
-      },
-      output: {
-        filename: "app.js",
-        path: path.resolve(__dirname, "../" + CONFIG.paths.buildWebAssets),
-      },
-      plugins: [
-        new BundleAnalyzerPlugin()
+  const COMMON_CONFIG = {
+    resolve: {
+      extensions: [".ts", ".tsx", ".js"]
+    },
+    module: {
+      rules: [
+        { test: /\.tsx?$/, loader: "ts-loader" }
       ]
-    }
+    },
+  }
+
+
+  if (!webpackCompiler) {
+    const WEBPACK_CONFIG = [
+      Object.assign({}, COMMON_CONFIG, {
+        mode: "development",
+        entry: "./" + CONFIG.paths.clientSrc + "/TestRunner.ts",
+        output: {
+          filename: "tests.js",
+          path: path.resolve(__dirname, "../" + CONFIG.paths.buildWebAssets),
+        },
+      }),
+      Object.assign({}, COMMON_CONFIG, {
+        mode: "development",
+        entry: "./" + CONFIG.paths.clientSrc + "/app.ts",
+        output: {
+          filename: "app.js",
+          path: path.resolve(__dirname, "../" + CONFIG.paths.buildWebAssets),
+        },
+        plugins: [
+          new BundleAnalyzerPlugin()
+        ]
+      })
+    ]
     webpackCompiler = webpack(WEBPACK_CONFIG)
   }
 

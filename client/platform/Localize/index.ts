@@ -11,7 +11,6 @@ export default class LocalizeContext {
   constructor (public langCode: string, localizationStores: any) {
     this.i18next = initI18next({
       lng: langCode,
-      debug: true,
       initImmediate: false,
       resources: localizationStores,
     })

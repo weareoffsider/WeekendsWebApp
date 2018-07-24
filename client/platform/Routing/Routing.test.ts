@@ -1,25 +1,29 @@
-import {matchPathToRoute} from './index'
+import {expect} from 'chai'
 
-test('match path to route works on parameter free routes', () => {
-  const matcher = "/about/"
-  const path = "/about/"
-  
-  const viewParams = matchPathToRoute(path, matcher)
-  expect(viewParams).toBeTruthy()
-})
+import {DatabaseStorage} from '../Persistence'
 
-test('match path to route returns null when no match', () => {
-  const matcher = "/ab/"
-  const path = "/about/"
+describe('RouteMatcher', () => {
+  it('match path to route works on parameter free routes', () => {
+    const matcher = "/about/"
+    const path = "/about/"
+    
+    const viewParams = false
+    expect(viewParams).to.exist;
+  })
 
-  const viewParams = matchPathToRoute(path, matcher)
-  expect(viewParams).toBeNull()
-})
+  it('match path to route returns null when no match', () => {
+    const matcher = "/ab/"
+    const path = "/about/"
 
-test('match path to route returns correct parameters', () => {
-  const matcher = "/entry/:slug/"
-  const path = "/entry/one-two-three/"
+    const viewParams = false
+    expect(viewParams).to.equal(null)
+  })
 
-  const viewParams = matchPathToRoute(path, matcher)
-  expect(viewParams).toEqual({slug: "one-two-three"})
+  it('match path to route returns correct parameters', () => {
+    const matcher = "/entry/:slug/"
+    const path = "/entry/one-two-three/"
+
+    const viewParams = false
+    expect(viewParams).to.equal({slug: "one-two-three"})
+  })
 })
