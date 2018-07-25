@@ -24,6 +24,9 @@
       "billion": "B",
       "trillion": "T",
       "quadrillion": "P"
-    }
+    },
+    "standard_string": "Standard String",
+    "some_count": "There is {{count}} item",
+    "some_count_plural": "There is {{count}} items"
   }
 }

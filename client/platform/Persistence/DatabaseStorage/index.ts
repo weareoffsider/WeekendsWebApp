@@ -27,8 +27,8 @@ function initializeDb(
   const databaseReady = new Promise<IDBDatabase>((resolve, reject) => {
     const request = idb.open(schema.name, schema.migrations.length)
 
-    request.onerror = (ev: Event) => {
-      console.log("DATABASE ERROR", ev)
+    request.onerror = (ev: any) => {
+      console.error("DATABASE ERROR", ev)
       reject(ev)
     }
     request.onsuccess = (ev: any) => {
