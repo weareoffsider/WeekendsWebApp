@@ -132,6 +132,7 @@ export default class DB {
 
   closeConnection () {
     return this.dbPromise.then((db) => {
+      console.log("DATABASE CONNECTION CLOSING", db)
       db.close()
       return true
     })
