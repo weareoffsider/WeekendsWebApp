@@ -293,11 +293,16 @@ addRoute(routeStack,
 )
 
 
+import footerChrome from './ui/chrome/Counter'
+import navChrome from './ui/chrome/Nav'
+
 document.addEventListener('DOMContentLoaded', function (event) {
   const viewElement = document.getElementById('view')
   const initialCounter = KeyValueStorage.get("counter", CounterStateBundle.initial)
+  console.log(initialCounter)
 
   initializeData().then((db) => {
+    console.log(initialCounter)
     CounterStateBundle.initial = initialCounter
     const {store, actionsBundle} = createStateStore<WeekendsWebAppState, WeekendsWebAppActions>([
       CounterStateBundle,
@@ -305,17 +310,9 @@ document.addEventListener('DOMContentLoaded', function (event) {
       ContentStateBundle,
     ])
 
-    const countElement = document.querySelector('.count')
-    const incrementButton = document.querySelector('.increment')
-    const decrementButton = document.querySelector('.decrement')
-
-    incrementButton.addEventListener('click', actionsBundle.counter.incrementCount)
-    decrementButton.addEventListener('click', actionsBundle.counter.decrementCount)
-    
     store.subscribe(() => {
       const state = store.getState()
       KeyValueStorage.set("counter", state.counter)
-      countElement.textContent = state.counter.count.toString()
     })
 
     const context = {
@@ -326,7 +323,12 @@ document.addEventListener('DOMContentLoaded', function (event) {
       actions: actionsBundle,
     }
 
-    initializeRenderer(routeStack, viewElement, store, actionsBundle, context)
+    const chromeBundles = [
+      navChrome,
+      footerChrome,
+    ]
+
+    initializeRenderer(routeStack, chromeBundles, viewElement, store, actionsBundle, context)
     initializeRouter(routeStack, store, actionsBundle, context)
   })
 })

@@ -6,6 +6,23 @@ import {find} from '../Utils'
 
 
 export interface RendererState {
+  chromeStates: {[key: string]: any}
+}
+
+
+export interface ChromeBundle<S, C, RenderUnitState> {
+  containerId: string
+  initialize: (
+    container: Element,
+    state: S,
+    context: C
+  ) => RenderUnitState
+  update: (
+    container: Element,
+    state: S,
+    context: C,
+    ruState?: RenderUnitState
+  ) => RenderUnitState
 }
 
 
@@ -13,12 +30,24 @@ export default function initializeRenderer<
   S extends Store<RoutingStateShape>, A extends RoutingActionsShape, C
 >(
   routeStack: RouteStack,
+  chromeBundles: ChromeBundle<any, C, any>[],
   viewElement: HTMLElement,
   store: S,
   actionsBundle: A,
   context: C
 ) {
+  let rendererState: RendererState = {
+    chromeStates: {},
+  }
   const activeViews: any = {}
+  const initialState = store.getState()
+
+  chromeBundles.forEach((cb) => {
+    const containerElem = document.getElementById(cb.containerId)
+    rendererState.chromeStates[cb.containerId] = (
+      cb.initialize(containerElem, initialState, context)
+    )
+  })
 
   store.subscribe(() => {
     const appState = store.getState()
@@ -91,6 +120,16 @@ export default function initializeRenderer<
       if (route) {
         route.render(container, params, appState, context)
       }
+    })
+
+    chromeBundles.forEach((cb) => {
+      const containerElem = document.getElementById(cb.containerId)
+      rendererState.chromeStates[cb.containerId] = (
+        cb.update(
+          containerElem, appState, context,
+          rendererState.chromeStates[cb.containerId]
+        )
+      )
     })
   })
 }
