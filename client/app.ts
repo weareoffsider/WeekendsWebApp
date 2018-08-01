@@ -54,255 +54,152 @@ import ContentStateBundle from './test-data/state'
 
 const enTranslation = require('./locales/en.json')
 
-const routeStack: RouteStack = {
-  routes: [],
-  renderError: function(viewElement: HTMLElement, params?: any) {
-    if (params.code == "404") {
-      viewElement.innerHTML = `
-        <h2>404 Error</h2>
-        <pre>${ JSON.stringify(params) }</pre>
-        <a href="${getUrl(routeStack, 'home')}">Go Back Home</a>
-      `
-    } else if (params.code == "403") {
-      viewElement.innerHTML = `
-        <h2>403 Forbidden Error</h2>
-        <pre>${ JSON.stringify(params) }</pre>
-        <a href="${getUrl(routeStack, 'home')}">Go Back Home</a>
-      `
-    } else {
-      viewElement.innerHTML = `
-        <h2>Unspecified Error</h2>
-        <pre>${ JSON.stringify(params) }</pre>
-        <a href="${getUrl(routeStack, 'home')}">Go Back Home</a>
-      `
-    }
-  },
-}
+const routeStack: RouteStack = {routes: []}
 
-addRoute(
-  routeStack,
-  "home",
-  "/",
-  function (params: any, context: WeekendsWebAppContext) {
-    return Promise.all([
-      context.db.getAll('authors').then((authors: any[]) => {
-        authors.forEach((author) => {
-          context.actions.content.putContent('authors', author.id, author)
-        })
-      }),
-      context.db.getAll('articles').then((articles: any[]) => {
-        articles.forEach((article) => {
-          context.actions.content.putContent('articles', article.id, article)
-        })
-      }),
-    ])
-  },
-  function (
-    viewElement: HTMLElement,
-    params: any,
-    appState: WeekendsWebAppState,
-    context: WeekendsWebAppContext
-  ) {
+addRoute(routeStack, "home", "/")
+addRoute(routeStack, "entry", "/entry/:slug/")
+addRoute(routeStack, "about", "/about/")
+addRoute(routeStack, "author", "/author/:id/")
 
-    const entries = []
+// addRoute(routeStack,
+//   "about",
+//   "/about/",
+//   function (params: any) {
+//     return new Promise((resolve, reject) => {
+//       window.setTimeout(resolve, 1000)
+//     })
+//   },
+//   function (
+//     viewElement: HTMLElement,
+//     params: any,
+//     appState: WeekendsWebAppState,
+//     context: WeekendsWebAppContext
+//   ) {
+//     const t_ = context.localize.translate
 
-    const articles = Object.keys(appState.content.articles).map((articleId: string) => {
-      return appState.content.articles[articleId]
-    })
+//     viewElement.innerHTML = `
+//       <h2>${t_("about_page.title")}</h2>
+//       <p>${t_('home_page.counter', {count: appState.counter.count})}</p>
+//       <a href="${getUrl(routeStack, 'home')}">${t_('home_page.title')}</a>
+//     `
+//   }
+// )
 
-    const authors = Object.keys(appState.content.authors).map((author_id: string) => {
-      return appState.content.authors[author_id]
-    })
+// addRoute(routeStack,
+//   "entry",
+//   "/entry/:slug/",
+//   function (params: any, context: WeekendsWebAppContext) {
+//     return context.db.getByKey('articles', params.slug)
+//       .then((article: any) => {
+//         context.actions.content.putContent('articles', article.id, article)
+//         return context.db.getByKey('authors', article.author_id)
+//       }).then((author: any) => {
+//         context.actions.content.putContent('authors', author.id, author)
+//       })
+//   },
+//   function (
+//     viewElement: HTMLElement,
+//     params: any,
+//     appState: WeekendsWebAppState,
+//     context: WeekendsWebAppContext
+//   ) {
+//     const {slug} = params
+//     const article = appState.content.articles[params.slug]
+//     const author = appState.content.authors[article.author_id]
+//     const t_ = context.localize.translate
+//     const fdtUTC = context.localize.formatDateTimeUTC
 
-    articles.sort((a, b) => {
-      return a.publication_date.localeCompare(b.publication_date) * -1
-    })
-    authors.sort((a, b) => {
-      return a.full_name.localeCompare(b.full_name)
-    })
+//     viewElement.innerHTML = `
+//       <h2>${article.title}</h2>
+//       <p>By <a href="${getUrl(routeStack, 'author', {id: author.id})}">${author.full_name}</a></p>
+//       <p>${fdtUTC(article.publication_date, 'abbr-local')}</p>
+//       <p>${t_('home_page.counter', {count: appState.counter.count})}</p>
+//       <p>${article.content}</p>
+//       <a href="${getUrl(routeStack, 'home')}">${t_('home_page.title')}</a>
+//     `
+//   }
+// )
 
-    const t_ = context.localize.translate
-    const formatDate = context.localize.formatDate
 
-    const articlesRender = articles.map((article: any) => {
-      const author = appState.content.authors[article.author_id]
+// addRoute(routeStack,
+//   "author",
+//   "/author/:id/",
+//   function (params: any, context: WeekendsWebAppContext) {
+//     return context.db.getByKey('authors', params.id)
+//       .then((author: any) => {
+//         context.actions.content.putContent('authors', author.id, author)
 
-      return `
-        <li><a href="${getUrl(routeStack, 'entry', {slug: article.id})}">
-          ${t_(
-            'home_page.article_line',
-            {
-              title: article.title, author_name: author.full_name,
-              publication_date: formatDate(article.publication_date, 'full'),
-            }
-          )}
-        </a></li>
-      `
-    })
+//         const query = {
+//           store: 'articles',
+//           filters: [
+//             { key: 'author_id', lookup: 'equals', value: author.id, },
+//             // { key: 'publication_date', lookup: 'lt', value: '2017-01-01', },
+//           ]
+//         }
 
-    const authorsRender = authors.map((author: any) => {
-      return `
-        <li><a href="${getUrl(routeStack, 'author', {id: author.id})}">
-          ${author.full_name}
-        </a></li>
-      `
-    })
+//         return context.db.query(query)
+//       }).then((articles: any) => {
+//         articles.forEach((article: any) => {
+//           context.actions.content.putContent('articles', article.id, article)
+//         })
+//       })
+//   },
+//   function (
+//     viewElement: HTMLElement,
+//     params: any,
+//     appState: WeekendsWebAppState,
+//     context: WeekendsWebAppContext
+//   ) {
+//     const {id} = params
+//     const author = appState.content.authors[id]
+//     const t_ = context.localize.translate
+//     const formatDate = context.localize.formatDate
+
+//     const articles = Object.keys(appState.content.articles).map((articleId: string) => {
+//       return appState.content.articles[articleId]
+//     }).filter((article) => {
+//       return article.author_id == author.id
+//     })
+
+//     articles.sort((a, b) => {
+//       return a.publication_date.localeCompare(b.publication_date) * -1
+//     })
+
+//     const articlesRender = articles.map((article: any) => {
+//       const author = appState.content.authors[article.author_id]
+
+//       return `
+//         <li><a href="${getUrl(routeStack, 'entry', {slug: article.id})}">
+//           ${t_(
+//             'home_page.article_line',
+//             {
+//               title: article.title, author_name: author.full_name,
+//               publication_date: formatDate(article.publication_date, 'full'),
+//             }
+//           )}
+//         </a></li>
+//       `
+//     }).join('')
     
-    viewElement.innerHTML = `
-      <h2>${t_('home_page.title')}</h2>
-      <p>${t_('home_page.counter', {count: appState.counter.count})}</p>
-      <ul>
-        ${articlesRender.join('\n')}
-      </ul>
-      <hr/>
-      <ul>
-        ${authorsRender.join('\n')}
-      </ul>
-      <a href="${getUrl(routeStack, 'about')}">${t_('about_page.title')}</a>
-      <a href="https://www.google.com">${t_('home_page.google_link')}</a>
-    `
-  }
-)
-
-addRoute(routeStack,
-  "about",
-  "/about/",
-  function (params: any) {
-    return new Promise((resolve, reject) => {
-      window.setTimeout(resolve, 1000)
-    })
-  },
-  function (
-    viewElement: HTMLElement,
-    params: any,
-    appState: WeekendsWebAppState,
-    context: WeekendsWebAppContext
-  ) {
-    const t_ = context.localize.translate
-
-    viewElement.innerHTML = `
-      <h2>${t_("about_page.title")}</h2>
-      <p>${t_('home_page.counter', {count: appState.counter.count})}</p>
-      <a href="${getUrl(routeStack, 'home')}">${t_('home_page.title')}</a>
-    `
-  }
-)
-
-addRoute(routeStack,
-  "entry",
-  "/entry/:slug/",
-  function (params: any, context: WeekendsWebAppContext) {
-    return context.db.getByKey('articles', params.slug)
-      .then((article: any) => {
-        context.actions.content.putContent('articles', article.id, article)
-        return context.db.getByKey('authors', article.author_id)
-      }).then((author: any) => {
-        context.actions.content.putContent('authors', author.id, author)
-      })
-  },
-  function (
-    viewElement: HTMLElement,
-    params: any,
-    appState: WeekendsWebAppState,
-    context: WeekendsWebAppContext
-  ) {
-    const {slug} = params
-    const article = appState.content.articles[params.slug]
-    const author = appState.content.authors[article.author_id]
-    const t_ = context.localize.translate
-    const fdtUTC = context.localize.formatDateTimeUTC
-
-    viewElement.innerHTML = `
-      <h2>${article.title}</h2>
-      <p>By <a href="${getUrl(routeStack, 'author', {id: author.id})}">${author.full_name}</a></p>
-      <p>${fdtUTC(article.publication_date, 'abbr-local')}</p>
-      <p>${t_('home_page.counter', {count: appState.counter.count})}</p>
-      <p>${article.content}</p>
-      <a href="${getUrl(routeStack, 'home')}">${t_('home_page.title')}</a>
-    `
-  }
-)
-
-
-addRoute(routeStack,
-  "author",
-  "/author/:id/",
-  function (params: any, context: WeekendsWebAppContext) {
-    return context.db.getByKey('authors', params.id)
-      .then((author: any) => {
-        context.actions.content.putContent('authors', author.id, author)
-
-        const query = {
-          store: 'articles',
-          filters: [
-            { key: 'author_id', lookup: 'equals', value: author.id, },
-            // { key: 'publication_date', lookup: 'lt', value: '2017-01-01', },
-          ]
-        }
-
-        return context.db.query(query)
-      }).then((articles: any) => {
-        articles.forEach((article: any) => {
-          context.actions.content.putContent('articles', article.id, article)
-        })
-      })
-  },
-  function (
-    viewElement: HTMLElement,
-    params: any,
-    appState: WeekendsWebAppState,
-    context: WeekendsWebAppContext
-  ) {
-    const {id} = params
-    const author = appState.content.authors[id]
-    const t_ = context.localize.translate
-    const formatDate = context.localize.formatDate
-
-    const articles = Object.keys(appState.content.articles).map((articleId: string) => {
-      return appState.content.articles[articleId]
-    }).filter((article) => {
-      return article.author_id == author.id
-    })
-
-    articles.sort((a, b) => {
-      return a.publication_date.localeCompare(b.publication_date) * -1
-    })
-
-    const articlesRender = articles.map((article: any) => {
-      const author = appState.content.authors[article.author_id]
-
-      return `
-        <li><a href="${getUrl(routeStack, 'entry', {slug: article.id})}">
-          ${t_(
-            'home_page.article_line',
-            {
-              title: article.title, author_name: author.full_name,
-              publication_date: formatDate(article.publication_date, 'full'),
-            }
-          )}
-        </a></li>
-      `
-    }).join('')
-    
-    viewElement.innerHTML = `
-      <h2>${author.full_name}</h2>
-      <ul>${articlesRender}</ul>
-      <a href="${getUrl(routeStack, 'home')}">${t_('home_page.title')}</a>
-    `
-  }
-)
+//     viewElement.innerHTML = `
+//       <h2>${author.full_name}</h2>
+//       <ul>${articlesRender}</ul>
+//       <a href="${getUrl(routeStack, 'home')}">${t_('home_page.title')}</a>
+//     `
+//   }
+// )
 
 
 import footerChrome from './ui/chrome/Counter'
 import navChrome from './ui/chrome/Nav'
+import homeView from './ui/views/Home'
+import errorsView from './ui/views/Errors'
 
 document.addEventListener('DOMContentLoaded', function (event) {
   const viewElement = document.getElementById('view')
   const initialCounter = KeyValueStorage.get("counter", CounterStateBundle.initial)
-  console.log(initialCounter)
 
   initializeData().then((db) => {
-    console.log(initialCounter)
     CounterStateBundle.initial = initialCounter
     const {store, actionsBundle} = createStateStore<WeekendsWebAppState, WeekendsWebAppActions>([
       CounterStateBundle,
@@ -321,6 +218,9 @@ document.addEventListener('DOMContentLoaded', function (event) {
         en: enTranslation,
       }),
       actions: actionsBundle,
+      getUrl: (name: string, params?: any) => {
+        return getUrl(routeStack, name, params)
+      }
     }
 
     const chromeBundles = [
@@ -328,8 +228,13 @@ document.addEventListener('DOMContentLoaded', function (event) {
       footerChrome,
     ]
 
-    initializeRenderer(routeStack, chromeBundles, viewElement, store, actionsBundle, context)
-    initializeRouter(routeStack, store, actionsBundle, context)
+    const viewBundles = [
+      errorsView,
+      homeView,
+    ]
+
+    initializeRenderer(routeStack, chromeBundles, viewBundles, viewElement, store, actionsBundle, context)
+    initializeRouter(routeStack, viewBundles, store, actionsBundle, context)
   })
 })
 

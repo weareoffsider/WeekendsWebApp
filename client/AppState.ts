@@ -28,4 +28,5 @@ export interface WeekendsWebAppContext {
   db: DB
   localize: LocalizeContext,
   actions: WeekendsWebAppActions
+  getUrl: (routeName: string, params?: any) => string
 }

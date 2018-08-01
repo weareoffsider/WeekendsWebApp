@@ -1,5 +1,6 @@
 import {Store} from 'redux'
 import {RoutingActionsShape, RoutingStateShape} from './state'
+import {ViewBundle} from '../Renderer'
 import {find} from '../Utils'
 
 export type ViewParams = {[key: string]: string}
@@ -17,14 +18,10 @@ export {
 export interface RoutePath {
   name: string
   matcher: string
-  preload: PreloadFunction
-  render: ViewRenderFunction
+  viewId: string
 }
 
-export interface RouteStack {
-  routes: RoutePath[]
-  renderError: ViewRenderFunction
-}
+export interface RouteStack {routes: RoutePath[]}
 
 
 export function normalizeRoute (targetRoute: string, pushStateIfWrong: boolean = false) {
@@ -43,10 +40,16 @@ export function initializeRouter<
   S extends Store<RoutingStateShape>, A extends RoutingActionsShape, C
 >(
   routeStack: RouteStack,
+  viewBundles: ViewBundle<any, C, any>[],
   store: S,
   actionsBundle: A,
   context: C
 ) {
+  const keyedViewBundles: {[key: string]: ViewBundle<any, C, any>} = {}
+  viewBundles.forEach((vb) => {
+    keyedViewBundles[vb.viewId] = vb
+  })
+
   window.addEventListener('popstate', function (event) {
     actionsBundle.routing.changeCurrentPath(
       normalizeRoute(window.location.pathname, true)
@@ -80,8 +83,17 @@ export function initializeRouter<
         const viewParams = matchPathToRoute(loadingPath, route.matcher)
         if (!viewParams) { return false }
 
+        const viewBundle = keyedViewBundles[route.viewId]
+        if (!viewBundle) {
+          actionsBundle.routing.changeLoadedRoute(
+            "__error__",
+            {code: "500", err: `View Bundle ID '${route.viewId}' not found.`}
+          )
+          return true
+        }
+
         // route matches if view params is not null, begin async loading
-        route.preload(viewParams, context).then((result) => {
+        viewBundle.preload(viewParams, context).then((result) => {
           // preload successful, begin render
           
           // dont actually render if we've already moved on from this route
@@ -130,10 +142,9 @@ export function addRoute(
   routeStack: RouteStack,
   name: string,
   matcher: string,
-  preload: PreloadFunction,
-  render: ViewRenderFunction
+  viewId?: string
 ): RouteStack {
-  routeStack.routes.push({name, matcher, render, preload})
+  routeStack.routes.push({name, matcher, viewId: viewId || name})
   return routeStack
 }
 

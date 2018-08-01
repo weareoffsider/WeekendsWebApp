@@ -21,7 +21,7 @@ function update(
 ) {
 }
 
-export const chromeBundle: ChromeBundle<WeekendsWebAppState, WeekendsWebAppContext> = {
+export const chromeBundle: ChromeBundle<WeekendsWebAppState, WeekendsWebAppContext, void> = {
   containerId: "nav",
   initialize,
   update,
