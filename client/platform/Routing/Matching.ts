@@ -3,8 +3,6 @@ import {find} from '../Utils'
 import {RouteStack, RoutePath, ViewParams} from './index'
 
 
-
-
 export function getUrl(
   routeStack: RouteStack,
   name: string,

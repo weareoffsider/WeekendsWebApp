@@ -54,7 +54,7 @@ import ContentStateBundle from './test-data/state'
 
 const enTranslation = require('./locales/en.json')
 
-const routeStack: RouteStack = {routes: []}
+const routeStack: RouteStack = {rootPath: "", routes: []}
 
 addRoute(routeStack, "home", "/")
 addRoute(routeStack, "entry", "/entry/:slug/")

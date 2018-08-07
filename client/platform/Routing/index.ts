@@ -21,7 +21,10 @@ export interface RoutePath {
   viewId: string
 }
 
-export interface RouteStack {routes: RoutePath[]}
+export interface RouteStack {
+  rootPath: string
+  routes: RoutePath[]
+}
 
 
 export function normalizeRoute (targetRoute: string, pushStateIfWrong: boolean = false) {
@@ -50,13 +53,14 @@ export function initializeRouter<
     keyedViewBundles[vb.viewId] = vb
   })
 
-  window.addEventListener('popstate', function (event) {
+  function onPopState(event: any) {
+    console.log('onPopState')
     actionsBundle.routing.changeCurrentPath(
       normalizeRoute(window.location.pathname, true)
     )
-  })
+  }
 
-  document.body.addEventListener('click', function (event) {
+  function onBodyClick(event: any) {
     if (event.target && (event.target as HTMLElement).tagName == "A") {
       const anchor = (event.target as HTMLAnchorElement)
       const root = window.location.origin
@@ -66,11 +70,14 @@ export function initializeRouter<
         actionsBundle.routing.changeCurrentPath(window.location.pathname)
       }
     }
-  })
+  }
+
+  document.body.addEventListener('click', onBodyClick)
+  window.addEventListener('popstate', onPopState)
 
   let lastLoadedPath: string = null
 
-  store.subscribe(() => {
+  const unsubcribeStore = store.subscribe(() => {
     const appState = store.getState()
     const {routes} = routeStack
 
@@ -92,8 +99,13 @@ export function initializeRouter<
           return true
         }
 
+        const preload = viewBundle.preload
+          ? viewBundle.preload(viewParams, context)
+          : Promise.resolve(true)
+
+        // TODO: preload gets called twice, investigate preventing this
         // route matches if view params is not null, begin async loading
-        viewBundle.preload(viewParams, context).then((result) => {
+        preload.then((result) => {
           // preload successful, begin render
           
           // dont actually render if we've already moved on from this route
@@ -104,6 +116,7 @@ export function initializeRouter<
           )
         }, (err) => {
           // error occurred during preload, render relevent error page
+          console.log("HELLO ERROR??")
           let errorCode = "500"
           let errorText = err.toString()
 
@@ -135,6 +148,12 @@ export function initializeRouter<
   actionsBundle.routing.changeCurrentPath(
     normalizeRoute(window.location.pathname, true)
   )
+
+  return function() {
+    document.body.removeEventListener('click', onBodyClick)
+    window.removeEventListener('popstate', onPopState)
+    unsubcribeStore()
+  }
 }
 
 
