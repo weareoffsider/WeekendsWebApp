@@ -54,7 +54,6 @@ export function initializeRouter<
   })
 
   function onPopState(event: any) {
-    console.log('onPopState')
     actionsBundle.routing.changeCurrentPath(
       normalizeRoute(window.location.pathname, true)
     )
@@ -116,7 +115,6 @@ export function initializeRouter<
           )
         }, (err) => {
           // error occurred during preload, render relevent error page
-          console.log("HELLO ERROR??")
           let errorCode = "500"
           let errorText = err.toString()
 

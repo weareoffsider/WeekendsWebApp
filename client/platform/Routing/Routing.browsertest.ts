@@ -174,7 +174,8 @@ describe('Routing Integration Test', () => {
       const state = store.getState()
       expect(state.routing.currentPath).to.equal('/entry/this-slug/')
       unsub()
-      done()
+      window.setTimeout(done, 10) // timeout required for next test to work
+                                  // on Firefox
     })
     window.history.back()
   })
