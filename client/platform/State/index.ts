@@ -18,6 +18,7 @@ export interface StateBundle<StateType> {
 export const INCREMENT_ACTION = {type: "INCREMENT"}
 export const DECREMENT_ACTION = {type: "DECREMENT"}
 export const NOTHING_ACTION = {type: "NOTHING"}
+export const RESET_ACTION = {type: "RESET"}
 
 
 export interface CountState {
@@ -31,6 +32,8 @@ export function reducer (state: CountState = {count: 0}, action: any) {
     return {count: state.count + 1}
   } else if (action.type == "DECREMENT") {
     return {count: state.count - 1}
+  } else if (action.type == "RESET") {
+    return {count: 0}
   } else {
     return state
   }
@@ -38,10 +41,12 @@ export function reducer (state: CountState = {count: 0}, action: any) {
 
 export function incrementCount () { return INCREMENT_ACTION }
 export function decrementCount () { return DECREMENT_ACTION }
+export function resetCount () { return RESET_ACTION }
 
 export const countActions = {
   incrementCount,
   decrementCount,
+  resetCount,
 }
 
 export const CounterStateBundle: StateBundle<CountState> = {

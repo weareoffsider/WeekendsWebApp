@@ -92,7 +92,7 @@ export default function initializeRenderer<
     )
   })
 
-  store.subscribe(() => {
+  const unsub = store.subscribe(() => {
     const appState = store.getState()
     const currentLocation = appState.routing.currentPath
     const mainRouteToRender = appState.routing.loadedRouteName == "__error__"
@@ -113,6 +113,7 @@ export default function initializeRenderer<
       // create the new container and add it to our activeViews cache
       const newViewContainer = document.createElement('div')
       viewElement.appendChild(newViewContainer)
+      newViewContainer.setAttribute('data-path', currentLocation)
 
       rendererState.viewStates[currentLocation] = {
         container: newViewContainer,
@@ -149,7 +150,7 @@ export default function initializeRenderer<
     }
 
     if (mainRouteToRender) {
-      // if our main route is in fact loaded, then we don't all the stale
+      // if our main route is in fact loaded, then we don't need all the stale
       // view containers any more, remove them
       Object.keys(rendererState.viewStates).forEach((path) => {
         if (path != currentLocation) {
@@ -182,4 +183,8 @@ export default function initializeRenderer<
       )
     })
   })
+
+  return function() {
+    unsub()
+  }
 }
