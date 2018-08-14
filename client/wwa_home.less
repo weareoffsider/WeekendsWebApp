@@ -1,0 +1,147 @@
+@import (inline) "../node_modules/normalize.css/normalize.css";
+
+@default-font-stack: 'Roboto', sans-serif;
+html {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  -webkit-box-sizing: inherit;
+  -moz-box-sizing: inherit;
+  box-sizing: inherit;
+}
+
+body {
+  background: #0D0D0D;
+  color: #FFF;
+  font-family: @default-font-stack;
+}
+
+@headerFontSize: 1.125rem;
+@bodyFontSize: 1.125rem;
+@faqHeaderSize: 1.5rem;
+@footerFontSize: 0.75rem;
+
+h1, h2, h3, h4, h5, h6, p, ul, li, ol {
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
+  font-size: 1rem;
+}
+
+header {
+  display: block;
+  
+  h1, h2, span {
+    display: inline-block;
+    vertical-align: middle;
+  }
+  
+  h1, h2 {
+    margin-top: -4px;
+    font-size: @headerFontSize;
+  }
+
+  h1 {
+    &:after {
+      content: '/';
+      display: inline-block;
+      margin-left: 18px;
+      margin-right: 18px;
+    }
+  }
+
+  span {
+    padding: 17px;
+  }
+  
+  margin-bottom: 50px;
+}
+
+
+.PastEpisodes {
+  margin-left: 100px;
+  margin-right: 100px;
+  margin-bottom: 100px;
+
+  h2 {
+    margin-left: 8px;
+    margin-bottom: 6px;
+    font-size: @headerFontSize;
+  }
+
+
+  &__frameWrapper {
+    border: 8px solid #1E1E1E;
+    background: white;
+    padding-bottom: 56.25%;
+    position: relative;
+  }
+
+  iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+  }
+}
+
+
+.FAQ {
+  margin-left: 100px;
+  margin-right: 100px;
+
+  background: white;
+  color: black;
+  position: relative;
+  padding: 0.5rem;
+
+  h2:first-child {
+    position: absolute;
+    bottom: 100%;
+    color: white;
+    left: 0;
+    margin-left: 8px;
+    margin-bottom: 6px;
+    font-size: @headerFontSize;
+  }
+
+  p {
+    font-size: @bodyFontSize;
+  }
+
+  p + p {
+    margin-top: 20px;
+  }
+
+  h3 {
+    font-size: @faqHeaderSize;
+    margin-top: 33px;
+  }
+}
+
+footer {
+  margin-top: 20px;
+  margin-bottom: 100px;
+  text-align: center;
+
+  p {
+    font-size: @footerFontSize;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
