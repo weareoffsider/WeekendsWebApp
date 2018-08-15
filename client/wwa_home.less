@@ -30,47 +30,50 @@ h1, h2, h3, h4, h5, h6, p, ul, li, ol {
   font-size: 1rem;
 }
 
-header {
+@standardMargin: 150px;
+
+// SiteHeader.less
+.SiteHeader {
   display: block;
+  margin-bottom: (@standardMargin / 2);
+  @spacer: 17px;
   
-  h1, h2, span {
+  &__logo,
+  &__title,
+  &__tagline {
     display: inline-block;
     vertical-align: middle;
   }
-  
-  h1, h2 {
+
+  &__logo {
+    padding: @spacer;
+  }
+
+  &__title,
+  &__tagline {
     margin-top: -4px;
     font-size: @headerFontSize;
   }
 
-  h1 {
-    &:after {
-      content: '/';
-      display: inline-block;
-      margin-left: 18px;
-      margin-right: 18px;
-    }
+  &__title:after {
+    content: '/';
+    display: inline-block;
+    margin-left: @spacer;
+    margin-right: @spacer;
   }
-
-  span {
-    padding: 17px;
-  }
-  
-  margin-bottom: 50px;
 }
 
-
+// PastEpisodes.less
 .PastEpisodes {
-  margin-left: 100px;
-  margin-right: 100px;
-  margin-bottom: 100px;
+  margin-left: @standardMargin;
+  margin-right: @standardMargin;
+  margin-bottom: @standardMargin;
 
-  h2 {
+  &__title {
     margin-left: 8px;
     margin-bottom: 6px;
     font-size: @headerFontSize;
   }
-
 
   &__frameWrapper {
     border: 8px solid #1E1E1E;
@@ -79,7 +82,7 @@ header {
     position: relative;
   }
 
-  iframe {
+  &__frame {
     position: absolute;
     top: 0;
     left: 0;
@@ -88,17 +91,18 @@ header {
   }
 }
 
-
+// FAQ.less
 .FAQ {
-  margin-left: 100px;
-  margin-right: 100px;
+  margin-top: @standardMargin;
+  margin-left: @standardMargin;
+  margin-right: @standardMargin;
 
   background: white;
   color: black;
   position: relative;
   padding: 0.5rem;
 
-  h2:first-child {
+  &__title {
     position: absolute;
     bottom: 100%;
     color: white;
@@ -108,32 +112,80 @@ header {
     font-size: @headerFontSize;
   }
 
-  p {
-    font-size: @bodyFontSize;
+  &__content\* {
+    p {
+      font-size: @bodyFontSize;
+    }
+
+    p + p {
+      margin-top: 20px;
+    }
+
+    h3 {
+      font-size: @faqHeaderSize;
+      margin-top: 33px;
+    }
   }
 
-  p + p {
-    margin-top: 20px;
+  &--colorful {
+    background: purple;
   }
 
-  h3 {
-    font-size: @faqHeaderSize;
-    margin-top: 33px;
+  &--colorful &__title {
+    color: purple;
   }
+
 }
 
-footer {
+// Footer.less
+.Footer {
   margin-top: 20px;
-  margin-bottom: 100px;
+  margin-bottom: @standardMargin;
   text-align: center;
 
-  p {
+  &__line {
     font-size: @footerFontSize;
   }
 }
 
 
+// LightTheme.less
+@LightTheme-backgroundColor: white;
+@LightTheme-textColor: black;
 
+.LightTheme\* {
+  background: @LightTheme-backgroundColor;
+
+  .SiteHeader {
+    color: @LightTheme-textColor;
+  }
+
+  .PastEpisodes {
+    color: @LightTheme-textColor;
+    &__frameWrapper {
+      border-color: #DDD;
+    }
+  }
+
+  .FAQ {
+    background: #EEE;
+    &__title {
+      color: @LightTheme-textColor;
+    }
+
+    &--colorful {
+      background: tint(purple, 50%);
+    }
+
+    &--colorful .FAQ__title {
+      color: purple;
+    }
+  }
+
+  .Footer {
+    color: @LightTheme-textColor;
+  }
+}
 
 
 
