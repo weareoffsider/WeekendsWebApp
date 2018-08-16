@@ -40,7 +40,30 @@ gulp.task("scripts", function (done) {
         plugins: [
           new BundleAnalyzerPlugin()
         ]
-      })
+      }),
+      Object.assign({}, COMMON_CONFIG, {
+        mode: "development",
+        entry: "./" + CONFIG.paths.clientSrc + "/component-server/client.ts",
+        externals: {
+          'jsdom': 'false',
+          'express': 'false',
+        },
+        node: {express: 'empty', fs: 'empty', net: 'empty',},
+        output: {
+          filename: "WWAComponents.client.js",
+          path: path.resolve(__dirname, "../" + CONFIG.paths.buildComponentServer),
+        },
+      }),
+      Object.assign({}, COMMON_CONFIG, {
+        mode: "development",
+        entry: "./" + CONFIG.paths.clientSrc + "/component-server/server.ts",
+        target: "node",
+        node: {__dirname: false},
+        output: {
+          filename: "WWAComponents.server.js",
+          path: path.resolve(__dirname, "../" + CONFIG.paths.buildComponentServer),
+        },
+      }),
     ]
     webpackCompiler = webpack(WEBPACK_CONFIG)
   }

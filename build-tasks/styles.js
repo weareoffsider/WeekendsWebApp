@@ -12,5 +12,6 @@ gulp.task("styles", function () {
              ])
              .pipe(less())
              .pipe(gulp.dest(CONFIG.paths.buildWebAssets))
+             .pipe(gulp.dest(CONFIG.paths.buildComponentServer))
              .pipe(connect.reload())
 })
