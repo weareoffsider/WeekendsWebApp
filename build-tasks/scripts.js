@@ -37,9 +37,7 @@ gulp.task("scripts", function (done) {
           filename: "app.js",
           path: path.resolve(__dirname, "../" + CONFIG.paths.buildWebAssets),
         },
-        plugins: [
-          new BundleAnalyzerPlugin()
-        ]
+        plugins: []
       }),
       Object.assign({}, COMMON_CONFIG, {
         mode: "development",

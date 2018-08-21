@@ -2,7 +2,7 @@ import {
   UniversalComponentConfig,
 } from 'universal-component-server'
 
-const context = (require as any).context('../ui', true)
+const context = (require as any).context('../ui', true, /\.(js|ts|tsx)$/)
 const ucsConfig = new UniversalComponentConfig(context)
 
 ucsConfig.addComponentRunner({
@@ -30,6 +30,41 @@ ucsConfig.addComponentRunner({
     }
 
     return null
+  },
+})
+
+
+ucsConfig.addComponentRunner({
+  name: "react-components",
+  matcher: "./**/*.react.tsx",
+  getTestData: (path) => {
+    const keys = context.keys()
+    const testPathTsx = path.replace('.react.tsx', '.data.tsx')
+    const testPathTs = path.replace('.react.tsx', '.data.ts')
+
+    if (keys.indexOf(testPathTs) != -1) {
+      return context(testPathTs)
+    } else if (keys.indexOf(testPathTsx) != -1) {
+      return context(testPathTsx)
+    } else {
+      return {default: {}}
+    }
+  },
+  renderServer: (componentModule, data) => {
+    const React = require('react')
+    const ReactDOM = require('react-dom/server')
+
+    const elem = React.createElement(componentModule.default, data)
+    return ReactDOM.renderToString(elem)
+  },
+  renderClient: (container, componentModule, data, path) => {
+    const React = require('react')
+    const ReactDOM = require('react-dom')
+    const elem = React.createElement(componentModule.default, data)
+    return ReactDOM.hydrate(
+      elem,
+      container
+    )
   },
 })
 
