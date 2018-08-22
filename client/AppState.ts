@@ -1,32 +1,21 @@
 import {RoutingStateShape, RoutingActionsShape} from "./platform/Routing/state"
-import {
-  CounterStateShape, CounterActionsShape
-} from "./platform/State"
-
-import {ContentStateShape, ContentActionsShape} from './test-data/state'
-
-
 import DB from './platform/Persistence/DatabaseStorage/DB'
 import LocalizeContext from './platform/Localize'
 
 
-export interface WeekendsWebAppState extends
-RoutingStateShape,
-CounterStateShape,
-ContentStateShape
+export interface SeaTimeState extends
+RoutingStateShape
 {
 }
 
-export interface WeekendsWebAppActions extends
-RoutingActionsShape,
-CounterActionsShape,
-ContentActionsShape
+export interface SeaTimeActions extends
+RoutingActionsShape
 {
 }
 
-export interface WeekendsWebAppContext {
-  db: DB
+export interface SeaTimeContext {
+  // db: DB
   localize: LocalizeContext,
-  actions: WeekendsWebAppActions
+  actions: SeaTimeActions
   getUrl: (routeName: string, params?: any) => string
 }

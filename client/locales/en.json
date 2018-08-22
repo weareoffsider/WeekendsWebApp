@@ -26,14 +26,7 @@
       "quadrillion": "P"
     },
     "home_page": {
-      "title": "This is the home page",
-      "counter": "You pressed the button {{count}} time.",
-      "counter_plural": "You pressed the button {{count}} times.",
-      "article_line": "{{ title }} - by {{ author_name }} on {{ publication_date }}",
-      "google_link": "Go to Google"
-    },
-    "about_page": {
-      "title": "About Page"
+      "title": "Sea Time App"
     }
   }
 }

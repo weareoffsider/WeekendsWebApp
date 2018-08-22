@@ -1,5 +1,5 @@
 import {
-  WeekendsWebAppContext, WeekendsWebAppState, WeekendsWebAppActions
+  SeaTimeContext, SeaTimeState, SeaTimeActions
 } from '../../AppState'
 
 import {ViewBundle} from '../../platform/Renderer'
@@ -8,8 +8,8 @@ import {ViewBundle} from '../../platform/Renderer'
 function render (
   viewElement: Element,
   params: any,
-  appState: WeekendsWebAppState,
-  context: WeekendsWebAppContext
+  appState: SeaTimeState,
+  context: SeaTimeContext
 ) {
   if (params.code == "404") {
     viewElement.innerHTML = `
@@ -36,7 +36,7 @@ function destroy (
 ) {
 }
 
-const viewBundle: ViewBundle<WeekendsWebAppState, WeekendsWebAppContext, void> = {
+const viewBundle: ViewBundle<SeaTimeState, SeaTimeContext, void> = {
   viewId: "__error__",
   initialize: render,
   update: render,

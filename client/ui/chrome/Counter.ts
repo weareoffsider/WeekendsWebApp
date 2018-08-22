@@ -1,5 +1,5 @@
 import {
-  WeekendsWebAppContext, WeekendsWebAppState, WeekendsWebAppActions
+  SeaTimeContext, SeaTimeState, SeaTimeActions
 } from '../../AppState'
 import {ChromeBundle} from '../../platform/Renderer/index'
 
@@ -10,8 +10,8 @@ interface CounterChromeState {
 
 function initialize(
   container: Element, 
-  state: WeekendsWebAppState,
-  context: WeekendsWebAppContext
+  state: SeaTimeState,
+  context: SeaTimeContext
 ) {
   container.innerHTML = `
     <span class="count">${state.counter.count}</span>
@@ -32,8 +32,8 @@ function initialize(
 
 function update(
   container: HTMLElement, 
-  state: WeekendsWebAppState,
-  context: WeekendsWebAppContext,
+  state: SeaTimeState,
+  context: SeaTimeContext,
   ccState: CounterChromeState
 ) {
   if (ccState.lastCount != state.counter.count) {
@@ -44,7 +44,7 @@ function update(
 }
 
 export const chromeBundle: ChromeBundle<
-  WeekendsWebAppState, WeekendsWebAppContext, CounterChromeState
+  SeaTimeState, SeaTimeContext, CounterChromeState
 > = {
   containerId: "counter",
   initialize,

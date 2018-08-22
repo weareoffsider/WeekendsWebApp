@@ -1,13 +1,13 @@
 import {
-  WeekendsWebAppContext, WeekendsWebAppState, WeekendsWebAppActions
+  SeaTimeContext, SeaTimeState, SeaTimeActions
 } from '../../AppState'
 import {ChromeBundle} from '../../platform/Renderer/index'
 
 
 function initialize(
   container: HTMLElement, 
-  state: WeekendsWebAppState,
-  context: WeekendsWebAppContext
+  state: SeaTimeState,
+  context: SeaTimeContext
 ) {
   container.innerHTML = `
     <h1>Weekends Web App Nav</h1>
@@ -16,12 +16,12 @@ function initialize(
 
 function update(
   container: HTMLElement, 
-  state: WeekendsWebAppState,
-  context: WeekendsWebAppContext
+  state: SeaTimeState,
+  context: SeaTimeContext
 ) {
 }
 
-export const chromeBundle: ChromeBundle<WeekendsWebAppState, WeekendsWebAppContext, void> = {
+export const chromeBundle: ChromeBundle<SeaTimeState, SeaTimeContext, void> = {
   containerId: "nav",
   initialize,
   update,
